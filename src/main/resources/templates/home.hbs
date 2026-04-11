@@ -1,0 +1,59 @@
+{{#> layouts/main}}
+<div class="card summary-panel" id="summary-panel">
+    <div class="summary-grid">
+        <div class="summary-stat">
+            <span class="summary-label">Total Files</span>
+            <span class="summary-value" id="stat-total-files">—</span>
+        </div>
+        <div class="summary-stat">
+            <span class="summary-label">Need Reorg</span>
+            <span class="summary-value" id="stat-reorg-count">—</span>
+        </div>
+        <div class="summary-stat">
+            <span class="summary-label">Dup Sets</span>
+            <span class="summary-value" id="stat-dup-groups">—</span>
+        </div>
+        <div class="summary-stat">
+            <span class="summary-label">After Dedup</span>
+            <span class="summary-value" id="stat-after-dedup">—</span>
+        </div>
+        <div class="summary-stat">
+            <span class="summary-label">Reclaimable</span>
+            <span class="summary-value" id="stat-reclaimable">—</span>
+        </div>
+    </div>
+    <div class="summary-actions">
+        <a href="/api/scripts/remove-duplicates" class="btn btn-sm" download="remove-duplicates.sh">
+            <span class="material-icons btn-icon">delete_sweep</span> Download Remove Duplicates Script
+        </a>
+        <a href="/api/scripts/reorganize" class="btn btn-sm" download="reorganize-files.sh">
+            <span class="material-icons btn-icon">drive_file_move</span> Download Reorganize Script
+        </a>
+    </div>
+</div>
+<script src="/js/summary.js"></script>
+
+<div class="card" style="margin-top: 16px;">
+    <div class="tree-toolbar">
+        <button class="btn btn-sm" id="collapse-all-btn" title="Collapse all folders">
+            <span class="material-icons btn-icon">unfold_less</span> Collapse All
+        </button>
+    </div>
+    <div class="file-tree-wrapper">
+        <div class="file-tree-header tree-file">
+            <span class="tree-arrow"></span>
+            <span class="tree-icon" style="visibility:hidden">x</span>
+            <span class="tree-name fth-label">Name</span>
+            <span class="tree-meta fth-label">Created</span>
+            <span class="tree-meta fth-label">Modified</span>
+            <span class="tree-size fth-label">Size</span>
+            <span class="tree-suggested fth-label">Suggested Path</span>
+            <span class="tree-action fth-label"></span>
+        </div>
+        <div id="file-tree" class="file-tree">
+            <p class="empty-state">Loading...</p>
+        </div>
+    </div>
+</div>
+<script src="/js/file-tree.js"></script>
+{{/layouts/main}}

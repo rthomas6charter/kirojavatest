@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{appName}} — {{title}}</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <!-- Top app bar -->
+    <header class="app-bar">
+        <button class="icon-button" id="menu-toggle" aria-label="Toggle menu">
+            <span class="material-icons">menu</span>
+        </button>
+        <span class="app-bar-title">{{appName}}</span>
+        <span class="app-bar-spacer"></span>
+        {{#if user}}
+        <span class="user-info">
+            <span class="material-icons">person</span>
+            {{user}}
+            <a href="/logout">Sign out</a>
+        </span>
+        {{/if}}
+    </header>
+
+    <div class="app-layout">
+        <!-- Collapsible side navigation -->
+        <nav class="sidebar" id="sidebar" aria-label="Main navigation">
+            <ul class="nav-list">
+                <li>
+                    <a href="/" class="nav-item{{#if isHome}} active{{/if}}">
+                        <span class="material-icons">home</span>
+                        <span class="nav-label">Home</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/about" class="nav-item{{#if isAbout}} active{{/if}}">
+                        <span class="material-icons">info</span>
+                        <span class="nav-label">About</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/settings" class="nav-item{{#if isSettings}} active{{/if}}">
+                        <span class="material-icons">settings</span>
+                        <span class="nav-label">Settings</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/search" class="nav-item{{#if isSearch}} active{{/if}}">
+                        <span class="material-icons">search</span>
+                        <span class="nav-label">Search</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main content area -->
+        <main class="content" id="content">
+            {{> @partial-block}}
+        </main>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
