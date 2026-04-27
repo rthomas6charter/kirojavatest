@@ -63,5 +63,15 @@ public class HomeController {
                     "results", results
             )));
         });
+
+        config.routes.get("/faces", ctx -> ctx.render("faces.hbs", model(ctx, Map.of(
+                "title", "Faces",
+                "isFaces", true
+        ))));
+
+        config.routes.get("/connections", ctx -> ctx.render("connections.hbs", model(ctx, Map.of(
+                "title", "Connections",
+                "isConnections", true
+        ))));
     }
 }

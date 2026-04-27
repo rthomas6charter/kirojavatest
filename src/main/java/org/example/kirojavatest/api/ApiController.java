@@ -6,6 +6,7 @@ import org.example.kirojavatest.fileanalyzer.DirectorySummary;
 import org.example.kirojavatest.fileanalyzer.DuplicateGroup;
 import org.example.kirojavatest.fileanalyzer.FileAnalyzer;
 import org.example.kirojavatest.fileanalyzer.FileInfo;
+import org.example.kirojavatest.fileanalyzer.MagicNumberUtil;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.HttpStatus;
 
@@ -236,6 +237,87 @@ public class ApiController {
             ctx.header("Content-Disposition", "attachment; filename=\"reorganize-files.sh\"");
             ctx.result(sb.toString());
         });
+
+        // --- Known Faces CRUD ---
+
+        config.routes.get("/api/faces", ctx -> {
+            Path facesFile = knownFacesFile();
+            if (!Files.exists(facesFile)) { ctx.json(List.of()); return; }
+            String json = Files.readString(facesFile);
+            ctx.contentType("application/json").result(json);
+        });
+
+        config.routes.get("/api/faces/{index}", ctx -> {
+            int index = Integer.parseInt(ctx.pathParam("index"));
+            List<Map<String, Object>> faces = readFaces();
+            if (index < 0 || index >= faces.size()) {
+                ctx.status(HttpStatus.NOT_FOUND).json(Map.of("error", "Not found"));
+                return;
+            }
+            ctx.json(faces.get(index));
+        });
+
+        config.routes.put("/api/faces/{index}", ctx -> {
+            int index = Integer.parseInt(ctx.pathParam("index"));
+            List<Map<String, Object>> faces = readFaces();
+            if (index < 0 || index >= faces.size()) {
+                ctx.status(HttpStatus.NOT_FOUND).json(Map.of("error", "Not found"));
+                return;
+            }
+            @SuppressWarnings("unchecked")
+            Map<String, Object> updates = ctx.bodyAsClass(Map.class);
+            Map<String, Object> face = faces.get(index);
+            // Only update non-embedding fields
+            for (var entry : updates.entrySet()) {
+                if (!"embedding".equals(entry.getKey())) {
+                    face.put(entry.getKey(), entry.getValue());
+                }
+            }
+            writeFaces(faces);
+            ctx.json(face);
+        });
+
+        // --- SMB Connections CRUD ---
+
+        config.routes.get("/api/connections", ctx -> {
+            ctx.json(readConnections());
+        });
+
+        config.routes.post("/api/connections", ctx -> {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> conn = ctx.bodyAsClass(Map.class);
+            List<Map<String, Object>> conns = readConnections();
+            conn.putIfAbsent("active", false);
+            conns.add(conn);
+            writeConnections(conns);
+            ctx.status(HttpStatus.CREATED).json(conn);
+        });
+
+        config.routes.put("/api/connections/{index}", ctx -> {
+            int index = Integer.parseInt(ctx.pathParam("index"));
+            List<Map<String, Object>> conns = readConnections();
+            if (index < 0 || index >= conns.size()) {
+                ctx.status(HttpStatus.NOT_FOUND).json(Map.of("error", "Not found"));
+                return;
+            }
+            @SuppressWarnings("unchecked")
+            Map<String, Object> updates = ctx.bodyAsClass(Map.class);
+            conns.get(index).putAll(updates);
+            writeConnections(conns);
+            ctx.json(conns.get(index));
+        });
+
+        config.routes.delete("/api/connections/{index}", ctx -> {
+            int index = Integer.parseInt(ctx.pathParam("index"));
+            List<Map<String, Object>> conns = readConnections();
+            if (index < 0 || index >= conns.size()) {
+                ctx.status(HttpStatus.NOT_FOUND).json(Map.of("error", "Not found"));
+                return;
+            }
+            conns.remove(index);
+            writeConnections(conns);
+            ctx.json(Map.of("deleted", true));
+        });
     }
 
     private static int countFilesNeedingReorg(Path root) throws IOException {
@@ -261,6 +343,65 @@ public class ApiController {
 
     private static String shellEscape(String s) {
         return "'" + s.replace("'", "'\\''") + "'";
+    }
+
+    private static final com.fasterxml.jackson.databind.ObjectMapper JSON_MAPPER = new com.fasterxml.jackson.databind.ObjectMapper();
+
+    private static Path knownFacesFile() {
+        String dataDir = AppConfig.get("app.data.dir", "");
+        return Paths.get(dataDir).toAbsolutePath().resolve("known_faces.json");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Map<String, Object>> readFaces() throws IOException {
+        Path file = knownFacesFile();
+        if (!Files.exists(file)) return new ArrayList<>();
+        return JSON_MAPPER.readValue(Files.readString(file),
+                JSON_MAPPER.getTypeFactory().constructCollectionType(List.class, Map.class));
+    }
+
+    private static void writeFaces(List<Map<String, Object>> faces) throws IOException {
+        Path file = knownFacesFile();
+        Files.createDirectories(file.getParent());
+        Files.writeString(file, JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(faces));
+    }
+
+    private static Path connectionsFile() {
+        String dataDir = AppConfig.get("app.data.dir", "");
+        return Paths.get(dataDir).toAbsolutePath().resolve(".ui-state").resolve("connections.json");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Map<String, Object>> readConnections() throws IOException {
+        Path file = connectionsFile();
+        if (!Files.exists(file)) return new ArrayList<>();
+        List<Map<String, Object>> conns = JSON_MAPPER.readValue(Files.readString(file),
+                JSON_MAPPER.getTypeFactory().constructCollectionType(List.class, Map.class));
+        // Decode base64 passwords for API consumers
+        for (Map<String, Object> conn : conns) {
+            Object pw = conn.get("password");
+            if (pw instanceof String s && !s.isEmpty()) {
+                try {
+                    conn.put("password", new String(java.util.Base64.getDecoder().decode(s), java.nio.charset.StandardCharsets.UTF_8));
+                } catch (IllegalArgumentException e) {
+                    // Not base64 encoded (legacy entry) — leave as-is
+                }
+            }
+        }
+        return conns;
+    }
+
+    private static void writeConnections(List<Map<String, Object>> conns) throws IOException {
+        // Encode passwords as base64 before writing
+        for (Map<String, Object> conn : conns) {
+            Object pw = conn.get("password");
+            if (pw instanceof String s && !s.isEmpty()) {
+                conn.put("password", java.util.Base64.getEncoder().encodeToString(s.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+            }
+        }
+        Path file = connectionsFile();
+        Files.createDirectories(file.getParent());
+        Files.writeString(file, JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(conns));
     }
 
     /** List immediate children of target, one level only. */
@@ -313,6 +454,10 @@ public class ApiController {
                     }
                 } catch (IOException e) {
                     // skip suggestion if we can't read attributes
+                }
+                // Magic number / extension mismatch detection
+                if (MagicNumberUtil.hasMismatch(entry.toPath())) {
+                    item.put("extMismatch", true);
                 }
             }
             items.add(item);

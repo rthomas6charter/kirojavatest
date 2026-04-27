@@ -81,6 +81,10 @@ body {
     list-style: none;
     padding: 0 8px;
 }
+.nav-list-bottom {
+    margin-top: auto;
+    padding-bottom: 8px;
+}
 .nav-item {
     display: flex;
     align-items: center;
@@ -125,7 +129,7 @@ body {
 .content {
     flex: 1;
     padding: 24px;
-    overflow: hidden;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     min-height: 0;
@@ -309,7 +313,7 @@ body {
 .file-tree > ul { padding-left: 0; }
 .tree-toggle {
     display: grid;
-    grid-template-columns: 24px 24px 1fr 140px 140px 80px 118px 36px;
+    grid-template-columns: 24px 24px 1fr 140px 140px 80px 118px 40px 36px;
     align-items: center;
     cursor: pointer;
     padding: 4px 0;
@@ -325,7 +329,7 @@ body {
 .tree-size { font-size: 12px; color: #9e9e9e; margin-left: 8px; }
 .tree-file {
     display: grid;
-    grid-template-columns: 24px 24px 1fr 140px 140px 80px 118px 36px;
+    grid-template-columns: 24px 24px 1fr 140px 140px 80px 118px 40px 36px;
     align-items: center;
     padding: 3px 16px 3px 0;
     gap: 2px;
@@ -584,7 +588,7 @@ body {
     border-top: 1px solid #efebe9;
 }
 
-/* === Viewport-fit layout === */
+/* === Viewport-fit layout (home page) === */
 .content > .card { flex-shrink: 0; }
 .content > .card:last-of-type {
     flex: 1;
@@ -599,3 +603,116 @@ body {
     flex: 1;
     min-height: 0;
 }
+/* On pages with the file tree, prevent outer scroll */
+.content:has(.file-tree-wrapper) { overflow-y: hidden; }
+
+/* === Alerts column === */
+.tree-alerts { display: inline-flex; align-items: center; gap: 2px; }
+.alert-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 2px 4px;
+    border-radius: 4px;
+    cursor: default;
+}
+.alert-fn {
+    background: #fff9c4;
+    color: #f9a825;
+    border: 1px solid #f9a825;
+}
+
+/* === Face edit dialog === */
+.face-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.25);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.face-dialog {
+    position: relative;
+    background: #fff;
+    border: 2px solid #d7ccc8;
+    border-radius: 12px;
+    padding: 24px;
+    min-width: 380px;
+    max-width: 520px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0,0,0,.2);
+}
+.face-dialog-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: #3e2723;
+    margin-bottom: 16px;
+}
+.face-edit-form .form-label { margin-top: 8px; }
+.face-edit-form .form-input { margin-bottom: 4px; }
+.face-dialog-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #efebe9;
+}
+
+/* === App bar search widget === */
+.appbar-search {
+    display: flex;
+    align-items: center;
+    position: relative;
+    margin-right: 8px;
+}
+.appbar-search-btn {
+    z-index: 2;
+}
+.appbar-search-input {
+    width: 0;
+    opacity: 0;
+    padding: 0;
+    border: none;
+    background: rgba(255,255,255,.15);
+    color: #fff;
+    font-family: inherit;
+    font-size: 14px;
+    border-radius: 4px;
+    outline: none;
+    transition: width .25s ease, opacity .25s ease, padding .25s ease;
+}
+.appbar-search-input::placeholder { color: rgba(255,255,255,.6); }
+.appbar-search.expanded .appbar-search-input {
+    width: 220px;
+    opacity: 1;
+    padding: 6px 10px;
+    margin-right: 4px;
+}
+.appbar-search.locked .appbar-search-input {
+    width: 220px;
+    opacity: 1;
+    padding: 6px 10px;
+    margin-right: 4px;
+    background: rgba(255,255,255,.25);
+}
+
+/* === Connection form === */
+.conn-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px 16px;
+}
+.conn-actions {
+    display: flex;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+/* === Connection type icon === */
+.conn-type-icon { font-size: 20px; color: #8d6e63; vertical-align: middle; }

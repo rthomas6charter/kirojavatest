@@ -1,0 +1,35 @@
+86. Please append the next 100 prompt statements, as they occur, in another file named docs/prompts_part2.txt
+
+87. Add and enable an access log for http requests that are sent from the browser app to the service layer of this app. The log messages should be configured by default to be displayed on the app's terminal/console (SYSOUT, SYSERR), as well as rolling file in a logs subdirectory, one for access and one for other log messages. The messages themselves should be formatted with the logging level at which they were emitted, and a timestamp in the format yyyyMMdd-hhmmss.SSS
+
+88. Move the "About" menu item to the bottom of the menu bar.
+
+89. Move the search menu feature to the title bar, shown as an icon (magnifying glass) only by default, expanded to a search entry box in the title bar when hovered. If the mouse hover position is moved before any text is typed, re-hide the search entry box. If the magnifying glass is clicked or text is typed while the mouse hovers over it, keep the search box visible until either the enter key is pressed, or the magnifying glass is clicked again. The result should be displayed in the central area as it is now, with a dynamically added Search Results menu bar item to navigate between the results (persisted from the last search) and other menu items.
+
+90. The search results menu item should remain available once a search has been entered. On the search results page, add a "Clear search" button, in case the user wants to make the search menu option go away.
+
+91. What is the bracketed [0:0...] decorator text at the end of log messages?
+
+92. Make the polling access log messages configurable separately so that the log can be configured to ignore the frequent /api/files, /api/files/duplicates, and /api/summary calls and still log other calls.
+
+93. Add a menu item for "Connections" that navigates to a page which has a basic form to add SMB connection details and add an item to a list. The list will have controls on each row for activate/deactivate on the connection, and edit, to modify the connection details.
+
+94. Add a connection type selection drop down that allows the user to choose SMB or SFTP. Change the other fields to match the selected option. Include the connection type in the stored connection item data and add an icon on each row in the list to indicate its type.
+
+95. How are the stored connections distinguished?
+
+96. Yes, but my question was related to how their types are distinguished.
+
+97. base64 encode/decode the password field in the connections data file so it isn't readable as clear text.
+
+98. Add a refresh icon to the list of connections to force reload when changes are made manually to the connections file.
+
+99. The page and/or panel with the list of connections cannot be scrolled to see more than the first item. Please fix the styling so that this works correctly.
+
+100. Move the Add Connection form below the list of existing connections.
+
+101. Limit the connections list vertical size to 2/3 of the available space so that the Add Connection form is never completely off the bottom of the screen. If there are too many items in the list to fit, make the item list scroll. Change the Connections header to have its title and subtitle on a single line (vertically smaller) and change the title to "Connections" instead of "SMB connections"
+
+102. Since the list already has a heading that says Connections, remove the Header banner pane, and make the subtitle text a tooltip on the heading above the list/table.
+
+103. Move the settings menu item down so that it appears at the bottom, just above the "About" menu item.

@@ -16,6 +16,14 @@
         </button>
         <span class="app-bar-title">{{appName}}</span>
         <span class="app-bar-spacer"></span>
+        <!-- Search widget -->
+        <div class="appbar-search" id="appbar-search">
+            <button class="icon-button appbar-search-btn" id="search-toggle" aria-label="Search">
+                <span class="material-icons">search</span>
+            </button>
+            <input type="text" class="appbar-search-input" id="search-input"
+                   placeholder="Search..." aria-label="Search" autocomplete="off">
+        </div>
         {{#if user}}
         <span class="user-info">
             <span class="material-icons">person</span>
@@ -36,11 +44,27 @@
                     </a>
                 </li>
                 <li>
-                    <a href="/about" class="nav-item{{#if isAbout}} active{{/if}}">
-                        <span class="material-icons">info</span>
-                        <span class="nav-label">About</span>
+                    <a href="/faces" class="nav-item{{#if isFaces}} active{{/if}}">
+                        <span class="material-icons">face</span>
+                        <span class="nav-label">Faces</span>
                     </a>
                 </li>
+                <li>
+                    <a href="/connections" class="nav-item{{#if isConnections}} active{{/if}}">
+                        <span class="material-icons">lan</span>
+                        <span class="nav-label">Connections</span>
+                    </a>
+                </li>
+            </ul>
+            <ul class="nav-list" id="search-results-nav" style="display:none;">
+                <li>
+                    <a href="/search" class="nav-item" id="search-results-link">
+                        <span class="material-icons">manage_search</span>
+                        <span class="nav-label">Search Results</span>
+                    </a>
+                </li>
+            </ul>
+            <ul class="nav-list nav-list-bottom">
                 <li>
                     <a href="/settings" class="nav-item{{#if isSettings}} active{{/if}}">
                         <span class="material-icons">settings</span>
@@ -48,9 +72,9 @@
                     </a>
                 </li>
                 <li>
-                    <a href="/search" class="nav-item{{#if isSearch}} active{{/if}}">
-                        <span class="material-icons">search</span>
-                        <span class="nav-label">Search</span>
+                    <a href="/about" class="nav-item{{#if isAbout}} active{{/if}}">
+                        <span class="material-icons">info</span>
+                        <span class="nav-label">About</span>
                     </a>
                 </li>
             </ul>

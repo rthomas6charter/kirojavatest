@@ -17,9 +17,10 @@ if ! command -v entr &> /dev/null; then
     exit 1
 fi
 
-# find src -name '*.java' -o -name '*.hbs'
-#   Recursively lists all Java source files and Handlebars templates under src/.
-#   These are the files we want to monitor for changes.
+# find src -type f
+#   Recursively lists ALL files under src/ — Java sources, Handlebars templates,
+#   CSS, JS, properties, and any other resources. This ensures changes to any
+#   file trigger a rebuild and restart.
 #
 # | entr -r mvn compile exec:java
 #   Pipes that file list into entr, which watches them for modifications.
@@ -28,11 +29,20 @@ fi
 #       the entire command when a file changes. Without -r, entr would wait
 #       for the previous run to finish before restarting.
 #
+#   -d  Tells entr to exit when a new file is added to a watched directory,
+#       so the outer while loop can re-scan and pick up the new file.
+#
 #   mvn compile exec:java
-#       compile    — Incrementally compiles changed source files into target/.
+#       compile    — Incrementally compiles changed source files into target/
+#                    and copies resources to target/classes/.
 #       exec:java  — Runs the application's main class (configured in pom.xml)
 #                    in the same JVM process as Maven, so no separate jar step
 #                    is needed during development.
+#
+# The while loop restarts entr whenever it exits due to -d (new file detected),
+# ensuring newly created files are also watched.
 
 echo "Watching src/ for changes... (press q to quit)"
-find src -name '*.java' -o -name '*.hbs' | entr -r mvn compile exec:java
+while true; do
+    find src -type f | entr -r -d mvn compile exec:java || true
+done

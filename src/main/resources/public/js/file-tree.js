@@ -121,6 +121,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     + '<span class="material-icons tree-suggested-icon">subdirectory_arrow_right</span>'
                     + escapeHtml(suggestedDir(item.suggestedPath)) + '</span>'
                 : '<span class="tree-suggested"></span>';
+            var alertsHtml = '<span class="tree-alerts">';
+            if (item.extMismatch) {
+                alertsHtml += '<span class="alert-badge alert-fn" title="File name extension / content mismatch">fn</span>';
+            }
+            alertsHtml += '</span>';
             li.innerHTML = '<span class="tree-arrow"></span>'
                 + '<span class="material-icons tree-icon">' + fileIcon + '</span>'
                 + '<span class="tree-name">' + escapeHtml(item.name) + '</span>'
@@ -128,6 +133,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 + '<span class="tree-meta">' + formatDate(item.modified) + '</span>'
                 + '<span class="tree-size">' + formatSize(item.size) + '</span>'
                 + suggestedHtml
+                + alertsHtml
                 + '<span class="tree-action">'
                 + (isDup ? '<button class="icon-btn-sm dup-inspect" title="Show duplicates" data-path="' + escapeAttr(item.path) + '">'
                     + '<span class="material-icons">search</span></button>' : '')
@@ -164,6 +170,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 + '<span class="tree-meta"></span>'
                 + '<span class="tree-size tree-empty-label">(empty)</span>'
                 + '<span class="tree-suggested"></span>'
+                + '<span class="tree-alerts"></span>'
                 + '<span class="tree-action"></span>';
             li.appendChild(toggle);
             return li;
@@ -176,6 +183,7 @@ document.addEventListener('DOMContentLoaded', function () {
             + '<span class="tree-meta"></span>'
             + '<span class="tree-size">' + formatSize(item.size) + '</span>'
             + '<span class="tree-suggested"></span>'
+            + '<span class="tree-alerts"></span>'
             + '<span class="tree-action"></span>';
 
         var childList = document.createElement('ul');

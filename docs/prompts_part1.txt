@@ -1,0 +1,169 @@
+1. Add the basic structure of a Java server app with support for handlebars based web UI elements and RESTful endpoints. Use libraries and frameworks that are widely used and well supported but minimize "lock in" and do not introduce dependencies on any commercial products. Use maven to build the application without any non-cli tool dependencies.
+
+2. change the base package name to org.example.kirojavatest
+
+3. Also clean up the com.app package directories in the source directories
+
+4. What is the command to start the application in a terminal?
+
+5. Is there a tool or plugin for maven that monitors the source folder and automatically rebuilds, re-jars, and re-runs the application locally while developing?
+
+6. yes (add the exec-maven-plugin)
+
+7. please create a shell script that starts those processes and includes comments about what each command does and why each part is used.
+
+8. why did you choose javalin version 6.4.0 instead of the latest?
+
+9. why is maven failing to fetch the javalin-rendering jar dependency from artifactory.se-charter.net other dependencies appear to be fetched from repo.maven.apache.org
+
+10. Now the compile fails with "package io.javalin.rendering.handlebars does not exist"
+
+11. dependencies seem to be ok, but the compile is now failing
+
+12. Looks like one of the try/catch structures in App.java is wrong. error message is: App.java:[20,34] unreported exception java.io.IOException; must be caught or declared to be thrown
+
+13. Implement a common UI pattern using material UI elements where there is a collapsable menu on the left side and a center panel where the app's active content will appear.
+
+14. Change the default color scheme to earth tones instead of bright purple
+
+15. Add a "search" item to the menu and mock up a simple search form with a table of result items underneath. For now, label the field column headers in the results with 5 random readable field name labels.
+
+16. There is nothing in the middle pane when any of the menu items is selected. Make this part of the app UI and navigation work as a prototype
+
+17. Add a configuration file for the app in the format most commonly used by java applications.
+
+18. Add a configuration parameter for a base file directory on the server to identify a data directory within which a set of managed files will be placed.
+
+19. Add the ability to log in to the application's web interface using a simple user name and password, and log out when work is finished.
+
+20. read the contents of the directory specified in the config and display as an expandable tree component on the home page of the app.
+
+21. set a cookie in the browser to keep a user logged in until they explicitly log out, even if the server app is restarted.
+
+22. The file browser component is stuck on "loading..."
+
+23. The file browser component shows the root element /data but it should not. The file listing should start with files and directorys within the specified data directory and display all of them at the root level.
+
+24. The component now shows a folder labeled undefined. if there are no files found, replace the entire tree component with a message that says "No files found in the configured data directory"
+
+25. now the app displays "Directory is empty." but the actual configured directory has a few subdirectories and files. Something is not working.
+
+26. Now the app is showing the "No files found in the configured..." message requested before. It should now show the subdirectories and files that are present within the configured directory. What is the result of ${user.home} when the app runs?
+
+27. How often will the app refresh the contents of the file tree? It does not appear to be reloading in response to anything done in the browser. The browser app may need to have a background timer or something that checks for changes every few seconds and a corresponding server side endpoint that does a lightweight check to see if anything has changed based on a timestamp or token sent back by the browser client. Alternatively, the app could establish push notifications to automatically update the UI when something has changed on the server.
+
+28. Add an application name to the header title section across the entire UI portion of the app. Make the application name a config setting. Set it to "Kiro Java Test" for now.
+
+29. In the main directory hierarchy display, only fetch the top level until one of the folders is clicked to expand its contents. Then fetch the details for child items. Also, keep track of which items are expanded or collapsed for a given user/session so the same view state can be restored after a logout login cycle.
+
+30. Fetch and display information columns for created date/time, last modified date/time, and file size on each leaf file in the tree.
+
+31. The .ui-state directory and files should not be displayed
+
+32. The data columns need to have a label header above them that is kept in view when the tree is scrolled
+
+33. The icon for a folder should show an open folder when the node is expanded to show the child files and folders
+
+34. why is a file that is at the same level as folders indented in the tree. that makes it appear to be contained in the folder that appears above it.
+
+35. Add a configurable setting to serve content files like .css resources with browser cache disabled.
+
+36. The file icon appears right justified compared to the folder icon. adjust the padding such that the icons are aligned on the left but the name labels are also left-aligned
+
+37. Now the directories that can be expanded are not aligned with the ones that are empty. Make all directories appear as expandable even if they are empty.
+
+38. Change the "welcome to the app" pane to a simple, single line header with text "Managed Files"
+
+39. Remove the "File Browser" heading above the tree
+
+40. Align the data column header labels with the values beneath them. date values and headers are right justified. The file size column is also right justified
+
+41. Folders are still displaying expanded by default. Only the folders that are expanded by the user should be shown expanded, with their child files and folders. relocate (empty) label to follow the folder name instead of appearing as a pseudo-file placeholder nested where a child file/folder would be. Also display empty folders with a grayed / disabled (not expandable) folder icon.
+
+42. The date column labels are still not aligned with the values.
+
+43. Add a fileanalyzer package to contain some utility and data object classes which will encapsulate functions like findDuplicateFiles and calculateDirectoryTotalSize
+
+44. Use the DirectorySummary to add a size value in the UI for each non-empty directory shown in the tree.
+
+45. Change the file icon to a multi-file icon and change the filename label text color to red for each file that matches another file's exact content using the duplicate finder utility function.
+
+46. Why isn't the app detecting duplicate files that are .png type and several nested directories deep?
+
+47. Add a column to the tree which has an icon button with a magnifying glass icon or something similar that appears on duplicate file rows. When the button is clicked, pop up an overlay panel that shows the list of file paths, relative to the data directory root for each of the duplicates found. Make the duplicate file paths links to bring the duplicate file's entry into view, opening any parent folders, and scrolling. The pop up overlay panel is closed by either clicking one of the duplicate file links or clicking outside the border of the panel.
+
+48. The popup panel should be contained in a box with a border that appears in front of the file tree, disabling interaction with the file tree until it has been dismissed. Clicking anywhere outside the box, or clicking one of the links in the box dismisses the panel, but also include a close "x" button in the corner that will also dismiss the panel, and respond to the ESC / escape key to dismiss the box. Position the box to the left of the magnifying glass icon button that opened it.
+
+49. Omit the file for which the magnifying glass button was clicked. In other words, don't include the file as a duplicate of itself and constrain the list to the other identical files. In the popup list, also include columns that shows the created and last modified date/time difference between the clicked file and the duplicate file. Also include a column with an equal sign icon to indicate the leaf-level file names match each other, or a not-equal sign icon to indicate the filenames are different.
+
+50. When the tree updates to display a new file, it should keep the current scroll position.
+
+51. If an added file appears in an expanded folder above the current scroll position, which would result in pushing the currently viewed content down, adjust the scroll position so that the same content remains in the same position on the screen if possible. The goal is to avoid background file changes causing any movement in what is viewed in the app.
+
+52. When a new file is detected and added to the tree, its duplicate status is missing. Any change to the list of files, or to the content of any file in the hierarchy, should refresh the duplicate file analysis.
+
+53. Add a collapse all button above the tree to recursively reset all folders to their closed, unexpanded setting.
+
+54. align the (empty) label with other size values in the size column
+
+55. align all size values at the space between the numeric value and the units. also align the space such that the widest units designator determines the alignment for the entire tree
+
+56. align the folder/file icons with each other, and the left end of the filename labels with each other. The same technique of splitting into 2 spans may apply here.
+
+57. add a utility to formulate a directory structure path based on file creation date with 4 digit years at the top level, 2 digit month at the next level, and 2 digit day at the final level. in the UI, if a file is not already in a directory structure that matches its creation date, show the target path for each file that would need to be moved in another data column to the right of the size column. that is repeated information anyway.
+
+58. Remove the managed files panel above the tree, and move the panel with the summary info and script buttons into that area of the screen instead.
+
+59. shorten and or wrap the labels on the summary information so that all of the data fields appear on a single row above the script generation buttons. center the script buttons
+
+60. Limit the size of the panel with the tree so that it fits within the current size of the browser window. currently the panel area scrolls, and the tree within the panel also scrolls. the goal is to make only the tree scrollable
+
+61. The suggested path column in the tree is pushing some of the size column values to the left. align the suggested path column header on the left with its values and prevent it from crowding the size column. to make the suggested path column values more consistently sized, just include the path elements and substitute ... for the actual file name. that is repeated information anyway.
+
+62. The size column value still shifts to the left on rows with a value in the suggested path column
+
+63. The size column values are still getting shifted to the left on rows where there is a suggested path
+
+64. The size column value still shifts to the left on rows with a value in the suggested path column
+
+65. In the generated reorganize files script, why is the DATA_DIR variable used for the target path but the source path for each file is hard coded on each command?
+
+66. Increase the width of the center panel of the UI to fill the available space in the browser window
+
+67. Add a panel below the tree, taking about 15% of the available screen space. Within that panel, lay out summary information including: The count of how many files would be moved to match their directory path with their creation dates. The count of files that have duplicate copies (count one for each set of duplicates). The total count of files in all subdirectories. The total count of files if all of the duplicates were removed, leaving only one copy of each duplicate set. The amount of space that would be reclaimed by removing duplicates. Also add buttons to generate and download shell scripts for "Remove Duplicates" and "Reorganize Files to YYYY/MM/DD directory structure"
+
+68. Shorten or wrap the suggested path header to fit in the space given to the column.
+
+69. The data columns need to have a label header above them that is kept in view when the tree is scrolled (duplicate - already addressed)
+
+70. Align the data column header labels with the values beneath them. date values and headers are right justified. The file size column is also right justified (refinement)
+
+71. The file icon appears right justified compared to the folder icon. adjust the padding such that the icons are aligned on the left but the name labels are also left-aligned (refinement)
+
+72. Now the directories that can be expanded are not aligned with the ones that are empty. Make all directories appear as expandable even if they are empty. (refinement)
+
+73. Change the "welcome to the app" pane to a simple, single line header with text "Managed Files"
+
+74. Remove the "File Browser" heading above the tree
+
+75. align the (empty) label with other size values in the size column (refinement)
+
+76. The script that runs the app in dev mode doesn't fully restart the app when changes are made to some files. Particularly, when styles are changed, the shell script needs to be fully stopped and re-run to pick up the changes. Is there a way to make this automatic?
+
+77. Shorten or wrap the suggested path header to fit in the space given to the column.
+
+78. create a README.md file with a description of this application and notes on its design and features
+
+79. Add a column to the tree/grid to contain a set of alert icons. As the first icon to be included in the alerts column, add detection of files that have a magic number that conflicts with their file name extension. The alert icon should be the letters fn in yellow with a rounded box around the letters. The tool tip for the alert icon should say "file name extension / content mismatch"
+
+80. What would be the best way to add a wrapper in the application for an mcp service hosted in ollama and what locally open source, free model would be best to provide facial recognition in photos.
+
+81. add the ollamaclient only for now.
+
+82. Would the sidecar project have its own project directory at the same level as this application?
+
+83. yes (scaffold the Python face-service sidecar)
+
+84. Add a top level feature to the application for editing the name for each known face stored as JSON in the local data directory. The list of faces should be presented as a table with an edit feature on each row that pops up a dialog with the full set of name/value pairs in a web form.
+
+85. Can you store the history of prompt text in a subdirectory named docs with the filename prompts_part1.txt

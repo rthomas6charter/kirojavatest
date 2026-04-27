@@ -1,0 +1,28 @@
+{{#> layouts/main}}
+<div class="card">
+    <h1>Known Faces</h1>
+    <p style="color:#616161; font-size:14px; margin-top:4px;">Manage registered face identities.</p>
+</div>
+<div class="card" style="margin-top:16px;">
+    <div id="faces-table-wrap">
+        <p class="empty-state">Loading...</p>
+    </div>
+</div>
+
+<!-- Edit dialog backdrop -->
+<div class="face-dialog-backdrop" id="face-dialog-backdrop" style="display:none;">
+    <div class="face-dialog">
+        <button class="dup-overlay-close" id="face-dialog-close" aria-label="Close">
+            <span class="material-icons">close</span>
+        </button>
+        <h2 class="face-dialog-title">Edit Face</h2>
+        <form id="face-edit-form" class="face-edit-form"></form>
+        <div class="face-dialog-actions">
+            <button type="button" class="btn btn-sm" id="face-save-btn">Save</button>
+            <button type="button" class="btn btn-sm" id="face-cancel-btn" style="background:#efebe9;color:#5d4037;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script src="/js/faces.js"></script>
+{{/layouts/main}}
