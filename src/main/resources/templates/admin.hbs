@@ -1,0 +1,85 @@
+{{#> layouts/main}}
+<div class="admin-tabs">
+    <button class="admin-tab active" data-tab="ui-options">UI Options</button>
+    <button class="admin-tab" data-tab="database">Database Management</button>
+    <button class="admin-tab" data-tab="dir-structure">Directory Structure</button>
+    <button class="admin-tab" data-tab="connections">Connections</button>
+</div>
+
+<!-- UI Options tab -->
+<div class="admin-panel card" id="tab-ui-options">
+    <h2 class="table-title">UI Options</h2>
+    <label class="form-label" for="theme-select">Theme</label>
+    <select class="form-input" id="theme-select" style="width:auto; min-width:180px;">
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+    </select>
+    <p id="theme-status" style="font-size:13px; color:#8d6e63; margin-top:8px;"></p>
+</div>
+
+<!-- Database Management tab -->
+<div class="admin-panel card" id="tab-database" style="display:none;">
+    <h2 class="table-title">Database Management</h2>
+    <div class="db-stats-grid" id="db-stats">
+        <p class="empty-state">Loading...</p>
+    </div>
+</div>
+
+<!-- Directory Structure tab -->
+<div class="admin-panel card" id="tab-dir-structure" style="display:none;">
+    <h2 class="table-title">Directory Structure Configuration</h2>
+    <p style="color:#616161; font-size:14px; margin-bottom:16px;">
+        Select the target directory structure used when reorganizing files.
+    </p>
+    <label class="form-label" for="dir-structure-type">Structure Type</label>
+    <select class="form-input" id="dir-structure-type" style="width:auto; min-width:280px;">
+        <option value="reverse-date">Reverse Date Structure (yyyy/mm/dd)</option>
+    </select>
+    <p id="dir-structure-status" style="font-size:13px; color:#8d6e63; margin-top:8px;"></p>
+</div>
+
+<!-- Connections tab -->
+<div class="admin-panel card" id="tab-connections" style="display:none;">
+    <h2 class="table-title" title="Manage network file share connections">Connections
+        <button class="icon-btn-sm" id="conn-refresh-btn" title="Refresh" style="margin-left:8px; color:#5d4037; vertical-align:middle;">
+            <span class="material-icons">refresh</span>
+        </button>
+    </h2>
+    <div id="conn-list" style="max-height:calc(50vh - 80px); overflow-y:auto;">
+        <p class="empty-state">Loading...</p>
+    </div>
+
+    <h2 class="table-title" style="margin-top:16px;">Add Connection</h2>
+    <form id="conn-add-form" class="conn-form">
+        <div style="margin-bottom:12px;">
+            <label class="form-label" for="conn-type">Type</label>
+            <select class="form-input" id="conn-type" name="type" style="width:auto;min-width:140px;">
+                <option value="smb">SMB</option>
+                <option value="sftp">SFTP</option>
+            </select>
+        </div>
+        <div class="conn-form-grid" id="conn-fields"></div>
+        <button type="submit" class="btn" style="margin-top:12px;">
+            <span class="material-icons btn-icon">add</span> Add Connection
+        </button>
+    </form>
+
+    <!-- Edit dialog -->
+    <div class="face-dialog-backdrop" id="conn-dialog-backdrop" style="display:none;">
+        <div class="face-dialog">
+            <button class="dup-overlay-close" id="conn-dialog-close" aria-label="Close">
+                <span class="material-icons">close</span>
+            </button>
+            <h2 class="face-dialog-title">Edit Connection</h2>
+            <form id="conn-edit-form" class="face-edit-form"></form>
+            <div class="face-dialog-actions">
+                <button type="button" class="btn btn-sm" id="conn-save-btn">Save</button>
+                <button type="button" class="btn btn-sm" id="conn-cancel-btn" style="background:#efebe9;color:#5d4037;">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/admin-tabs.js"></script>
+<script src="/js/connections.js"></script>
+{{/layouts/main}}

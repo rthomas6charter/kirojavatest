@@ -1,0 +1,7 @@
+target/
+data/
+logs/
+.git/
+*.md
+docs/
+face-service/

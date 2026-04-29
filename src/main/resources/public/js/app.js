@@ -1,3 +1,14 @@
+// Apply theme immediately (before DOMContentLoaded to avoid flash)
+(function () {
+    var theme = localStorage.getItem('theme') || 'light';
+    applyTheme(theme);
+})();
+
+function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     // --- Sidebar toggle ---
     var sidebar = document.getElementById('sidebar');

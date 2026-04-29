@@ -1,6 +1,9 @@
 package org.example.kirojavatest;
 
 import org.example.kirojavatest.api.ApiController;
+import org.example.kirojavatest.db.FileDatabase;
+import org.example.kirojavatest.db.FileScanner;
+import org.example.kirojavatest.db.SettingsManager;
 import org.example.kirojavatest.web.AuthController;
 import org.example.kirojavatest.web.HomeController;
 import com.github.jknack.handlebars.Handlebars;
@@ -40,7 +43,10 @@ public class App {
             AuthController.requireAuth(config);
             AuthController.register(config);
             HomeController.register(config);
-            ApiController.register(config);
+
+            SettingsManager settingsMgr = new SettingsManager();
+            FileDatabase fileDb = new FileDatabase();
+            ApiController.register(config, settingsMgr, fileDb);
 
             // Access logging
             config.routes.before(ctx -> ctx.attribute("requestStart", System.currentTimeMillis()));
@@ -72,5 +78,10 @@ public class App {
 
         int port = AppConfig.getInt("server.port", 8080);
         app.start(port);
+
+        // Initialize database and run initial scan
+        FileDatabase fileDb = new FileDatabase();
+        FileScanner scanner = new FileScanner(fileDb);
+        scanner.scan();
     }
 }

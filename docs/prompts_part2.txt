@@ -33,3 +33,23 @@
 102. Since the list already has a heading that says Connections, remove the Header banner pane, and make the subtitle text a tooltip on the heading above the list/table.
 
 103. Move the settings menu item down so that it appears at the bottom, just above the "About" menu item.
+
+104. Add a file based database like sqlite to keep the calculated information about each scanned file. capture the file size, a checksum of the file content, the created and last modified dates, and the file path and name relative to the root of the data directory. Assign each newly discovered file a globally unique ID to use for associations. Capture duplicate file pairings in an association table mapping 2 of the "file info" records by their assigned ids. Capture the target path/filename calculated for each file that would need to be moved for its create date to match the desired directory structure.
+
+105. Add a settings file to capture config settings. Add a setting named liveMode which can be true or false. The purpose of the liveMode setting will be described later.
+
+106. Add a Dockerfile and docker-compose.yaml file that work together to build and start the application as a container, with a volume mapped out to the Docker host using a relative directory to keep the data directory from being stored in the container's internal filesystem.
+
+107. add an admin menu item that navigates to an admin ui with tabs in the central view area for "UI Options", "database management" and "directory structure configuration". Move the "connections" feature into the admin UI as another tab.
+
+108. Remove the Settings menu item. Move the Admin menu item to where Settings appears now.
+
+109. On the directory structure admin tab, add the option to select a target directory structure type option. As a first selectable option, and the only one for now, add "Reverse Date Structure (yyyy/mm/dd)"
+
+110. On the UI options admin page, add the option to configure the application UI theme as dark or light.
+
+111. On the database management admin page, add an information panel about the current sqlite database including the current DB size on disk, the path where the DB files are located, and any other basic stats or informational items about the database that might be available to display.
+
+112. The red color text on the dark theme does not have enough contrast to see the stats like total files, reclaimable, etc. Please adjust the text color to something visible on a dark background.
+
+113. Make the application name a setting in the app configuration. Initially keep its value set to "Kiro Java Test"

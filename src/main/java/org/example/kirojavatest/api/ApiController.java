@@ -1,6 +1,7 @@
 package org.example.kirojavatest.api;
 
 import org.example.kirojavatest.AppConfig;
+import org.example.kirojavatest.db.FileDatabase;
 import org.example.kirojavatest.fileanalyzer.DatePathUtil;
 import org.example.kirojavatest.fileanalyzer.DirectorySummary;
 import org.example.kirojavatest.fileanalyzer.DuplicateGroup;
@@ -30,7 +31,7 @@ public class ApiController {
     // For persistence across restarts, this could be backed by a file in the data dir.
     private static final Map<String, List<String>> expandedState = new ConcurrentHashMap<>();
 
-    public static void register(JavalinConfig config) {
+    public static void register(JavalinConfig config, org.example.kirojavatest.db.SettingsManager settingsMgr, FileDatabase fileDb) {
         config.routes.get("/api/health", ctx -> ctx.json(Map.of("status", "ok")));
 
         config.routes.get("/api/items", ctx -> ctx.json(Map.of("items", new String[]{})));
@@ -275,6 +276,25 @@ public class ApiController {
             }
             writeFaces(faces);
             ctx.json(face);
+        });
+
+        // --- Settings ---
+
+        config.routes.get("/api/settings", ctx -> {
+            ctx.json(settingsMgr.getAll());
+        });
+
+        config.routes.put("/api/settings", ctx -> {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> updates = ctx.bodyAsClass(Map.class);
+            settingsMgr.setAll(updates);
+            ctx.json(settingsMgr.getAll());
+        });
+
+        // --- Database stats ---
+
+        config.routes.get("/api/db/stats", ctx -> {
+            ctx.json(fileDb.getStats());
         });
 
         // --- SMB Connections CRUD ---
