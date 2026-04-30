@@ -53,3 +53,9 @@
 112. The red color text on the dark theme does not have enough contrast to see the stats like total files, reclaimable, etc. Please adjust the text color to something visible on a dark background.
 
 113. Make the application name a setting in the app configuration. Initially keep its value set to "Kiro Java Test"
+
+114. Add a "structure" preview menu option with a directory view similar to the Home view, but instead of showing the files in their actual directory locations, display a virtual hierarchy of the files as if they had already been reorganized. For duplicate files resolving to the same reorganized path and name, mapped to multiple locations, show a count of the duplicated files as a decorator column, and display a mouse-over list of the actual paths for each file. Each file in the hierarchy that is represented by a virtual path that does not match its real path, should be highlighted to indicate its "shown in re-org path"
+
+115. Create a parent item named "Files" and place the current "Home" menu within "Files" as a sub-menu item named "Existing View". Then move the "Structure" menu item under "Files" as a second sub-menu item named "Reorg Preview"
+
+116. In the same way the Existing View persists which folders are expanded or collapsed, and the scroll position, make the Reorg Preview retain the last shown state, so that navigating between the two views does not require the user to manually reopen everything and scroll.

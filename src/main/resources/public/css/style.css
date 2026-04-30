@@ -807,3 +807,47 @@ body {
     padding: 6px 0;
     font-family: monospace;
 }
+
+/* === Structure preview === */
+.struct-dup-col { width: 40px; min-width: 40px; text-align: center; }
+.struct-dup-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff3e0;
+    color: #e65100;
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 22px;
+    height: 20px;
+    border-radius: 10px;
+    padding: 0 6px;
+    cursor: default;
+}
+[data-theme="dark"] .struct-dup-badge { background: #4e342e; color: #ffab91; }
+.struct-moved { background: rgba(255, 243, 224, 0.3); }
+[data-theme="dark"] .struct-moved { background: rgba(78, 52, 46, 0.3); }
+.struct-moved-icon { font-size: 14px; color: #e65100; vertical-align: middle; margin-left: 4px; }
+[data-theme="dark"] .struct-moved-icon { color: #ffab91; }
+
+/* === Nav group (collapsible parent menu) === */
+.nav-group-toggle {
+    cursor: pointer;
+    position: relative;
+}
+.nav-group-arrow {
+    font-size: 18px;
+    margin-left: auto;
+    transition: transform .2s;
+}
+.nav-group.collapsed .nav-group-arrow { transform: rotate(-90deg); }
+.nav-group.collapsed .nav-sublist { display: none; }
+.nav-sublist {
+    list-style: none;
+    padding: 0 0 0 16px;
+}
+.nav-sub {
+    padding-left: 24px;
+    font-size: 13px;
+    height: 40px;
+}

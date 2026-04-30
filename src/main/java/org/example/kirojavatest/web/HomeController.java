@@ -69,6 +69,11 @@ public class HomeController {
                 "isFaces", true
         ))));
 
+        config.routes.get("/structure", ctx -> ctx.render("structure.hbs", model(ctx, Map.of(
+                "title", "Structure Preview",
+                "isStructure", true
+        ))));
+
         config.routes.get("/admin", ctx -> ctx.render("admin.hbs", model(ctx, Map.of(
                 "title", "Admin",
                 "isAdmin", true

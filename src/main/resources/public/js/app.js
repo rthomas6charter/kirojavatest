@@ -23,6 +23,17 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // --- Nav group toggle ---
+    document.querySelectorAll('.nav-group-toggle').forEach(function (groupToggle) {
+        var group = groupToggle.closest('.nav-group');
+        groupToggle.addEventListener('click', function () {
+            group.classList.toggle('collapsed');
+        });
+        groupToggle.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); groupToggle.click(); }
+        });
+    });
+
     // --- App bar search widget ---
     var searchWrap = document.getElementById('appbar-search');
     var searchBtn = document.getElementById('search-toggle');

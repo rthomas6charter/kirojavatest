@@ -37,11 +37,26 @@
         <!-- Collapsible side navigation -->
         <nav class="sidebar" id="sidebar" aria-label="Main navigation">
             <ul class="nav-list">
-                <li>
-                    <a href="/" class="nav-item{{#if isHome}} active{{/if}}">
-                        <span class="material-icons">home</span>
-                        <span class="nav-label">Home</span>
-                    </a>
+                <li class="nav-group">
+                    <div class="nav-item nav-group-toggle" role="button" tabindex="0">
+                        <span class="material-icons">folder_open</span>
+                        <span class="nav-label">Files</span>
+                        <span class="material-icons nav-group-arrow">expand_more</span>
+                    </div>
+                    <ul class="nav-sublist">
+                        <li>
+                            <a href="/" class="nav-item nav-sub{{#if isHome}} active{{/if}}">
+                                <span class="material-icons">visibility</span>
+                                <span class="nav-label">Existing View</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/structure" class="nav-item nav-sub{{#if isStructure}} active{{/if}}">
+                                <span class="material-icons">account_tree</span>
+                                <span class="nav-label">Reorg Preview</span>
+                            </a>
+                        </li>
+                    </ul>
                 </li>
                 <li>
                     <a href="/faces" class="nav-item{{#if isFaces}} active{{/if}}">

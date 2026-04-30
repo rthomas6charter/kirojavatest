@@ -297,6 +297,68 @@ public class ApiController {
             ctx.json(fileDb.getStats());
         });
 
+        // --- Structure preview (virtual reorganized tree) ---
+
+        config.routes.get("/api/structure", ctx -> {
+            String dataDir = AppConfig.get("app.data.dir", "");
+            if (dataDir.isEmpty()) { ctx.json(List.of()); return; }
+            Path root = Paths.get(dataDir).toAbsolutePath().normalize();
+            if (!Files.isDirectory(root)) { ctx.json(List.of()); return; }
+
+            // Build a map of virtualPath -> list of actual source paths
+            Map<String, List<Map<String, Object>>> virtualMap = new LinkedHashMap<>();
+            Files.walkFileTree(root, new java.nio.file.SimpleFileVisitor<>() {
+                @Override
+                public java.nio.file.FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+                    if (dir.getFileName() != null && dir.getFileName().toString().equals(".ui-state"))
+                        return java.nio.file.FileVisitResult.SKIP_SUBTREE;
+                    return java.nio.file.FileVisitResult.CONTINUE;
+                }
+                @Override
+                public java.nio.file.FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                    try {
+                        String relPath = root.relativize(file.toAbsolutePath().normalize()).toString();
+                        String targetPath;
+                        try {
+                            targetPath = DatePathUtil.targetPath(file);
+                        } catch (IOException e) {
+                            targetPath = relPath;
+                        }
+                        boolean moved = !relPath.equals(targetPath);
+                        Map<String, Object> entry = new LinkedHashMap<>();
+                        entry.put("actualPath", relPath);
+                        entry.put("moved", moved);
+                        entry.put("size", attrs.size());
+                        entry.put("created", attrs.creationTime().toInstant().toString());
+                        entry.put("modified", attrs.lastModifiedTime().toInstant().toString());
+                        virtualMap.computeIfAbsent(targetPath, k -> new ArrayList<>()).add(entry);
+                    } catch (Exception e) { /* skip */ }
+                    return java.nio.file.FileVisitResult.CONTINUE;
+                }
+            });
+
+            // Convert to a nested tree structure
+            // First build a flat list of virtual file entries
+            List<Map<String, Object>> flatFiles = new ArrayList<>();
+            for (var mapEntry : virtualMap.entrySet()) {
+                String vPath = mapEntry.getKey();
+                List<Map<String, Object>> sources = mapEntry.getValue();
+                Map<String, Object> vFile = new LinkedHashMap<>();
+                vFile.put("virtualPath", vPath);
+                vFile.put("name", vPath.contains("/") ? vPath.substring(vPath.lastIndexOf('/') + 1) : vPath);
+                vFile.put("dupCount", sources.size());
+                vFile.put("sources", sources);
+                // Use first source for display metadata
+                vFile.put("size", sources.get(0).get("size"));
+                vFile.put("created", sources.get(0).get("created"));
+                vFile.put("modified", sources.get(0).get("modified"));
+                // Moved if any source doesn't match the virtual path
+                vFile.put("moved", sources.stream().anyMatch(s -> Boolean.TRUE.equals(s.get("moved"))));
+                flatFiles.add(vFile);
+            }
+            ctx.json(flatFiles);
+        });
+
         // --- SMB Connections CRUD ---
 
         config.routes.get("/api/connections", ctx -> {

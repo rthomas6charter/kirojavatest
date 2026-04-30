@@ -1,0 +1,24 @@
+{{#> layouts/main}}
+<div class="card" style="margin-bottom:16px;">
+    <span style="font-size:20px; font-weight:400;">Structure Preview</span>
+    <span style="color:var(--text-secondary); font-size:14px; margin-left:12px;">Files shown in their reorganized YYYY/MM/DD paths</span>
+</div>
+<div class="card" style="flex:1; display:flex; flex-direction:column; min-height:0; overflow:hidden;">
+    <div class="file-tree-wrapper" style="flex:1; min-height:0;">
+        <div class="file-tree-header tree-file">
+            <span class="tree-arrow"></span>
+            <span class="tree-icon" style="visibility:hidden">x</span>
+            <span class="tree-name fth-label">Name</span>
+            <span class="tree-meta fth-label">Created</span>
+            <span class="tree-meta fth-label">Modified</span>
+            <span class="tree-size fth-label">Size</span>
+            <span class="struct-dup-col fth-label">Dups</span>
+            <span class="tree-action fth-label"></span>
+        </div>
+        <div id="structure-tree" class="file-tree">
+            <p class="empty-state">Loading...</p>
+        </div>
+    </div>
+</div>
+<script src="/js/structure.js"></script>
+{{/layouts/main}}
