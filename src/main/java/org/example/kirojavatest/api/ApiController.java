@@ -3,6 +3,7 @@ package org.example.kirojavatest.api;
 import org.example.kirojavatest.AppConfig;
 import org.example.kirojavatest.db.FileDatabase;
 import org.example.kirojavatest.fileanalyzer.DatePathUtil;
+import org.example.kirojavatest.tasks.BackgroundTask;
 import org.example.kirojavatest.fileanalyzer.DirectorySummary;
 import org.example.kirojavatest.fileanalyzer.DuplicateGroup;
 import org.example.kirojavatest.fileanalyzer.FileAnalyzer;
@@ -31,7 +32,7 @@ public class ApiController {
     // For persistence across restarts, this could be backed by a file in the data dir.
     private static final Map<String, List<String>> expandedState = new ConcurrentHashMap<>();
 
-    public static void register(JavalinConfig config, org.example.kirojavatest.db.SettingsManager settingsMgr, FileDatabase fileDb) {
+    public static void register(JavalinConfig config, org.example.kirojavatest.db.SettingsManager settingsMgr, FileDatabase fileDb, org.example.kirojavatest.tasks.TaskQueue taskQueue) {
         config.routes.get("/api/health", ctx -> ctx.json(Map.of("status", "ok")));
 
         config.routes.get("/api/items", ctx -> ctx.json(Map.of("items", new String[]{})));
@@ -295,6 +296,40 @@ public class ApiController {
 
         config.routes.get("/api/db/stats", ctx -> {
             ctx.json(fileDb.getStats());
+        });
+
+        // --- Background tasks ---
+
+        config.routes.get("/api/tasks", ctx -> {
+            ctx.json(taskQueue.getAll().stream().map(BackgroundTask::toMap).toList());
+        });
+
+        config.routes.get("/api/tasks/active", ctx -> {
+            ctx.json(taskQueue.getActive().stream().map(BackgroundTask::toMap).toList());
+        });
+
+        config.routes.get("/api/tasks/completed", ctx -> {
+            String since = ctx.queryParam("since");
+            if (since != null) {
+                ctx.json(taskQueue.getCompletedSince(since).stream().map(BackgroundTask::toMap).toList());
+            } else {
+                ctx.json(taskQueue.getAll().stream()
+                        .filter(t -> t.completedAt() != null)
+                        .map(BackgroundTask::toMap).toList());
+            }
+        });
+
+        config.routes.get("/api/tasks/{id}", ctx -> {
+            taskQueue.get(ctx.pathParam("id"))
+                    .ifPresentOrElse(
+                            t -> ctx.json(t.toMap()),
+                            () -> ctx.status(HttpStatus.NOT_FOUND).json(Map.of("error", "Not found"))
+                    );
+        });
+
+        config.routes.delete("/api/tasks/{id}", ctx -> {
+            boolean cancelled = taskQueue.cancel(ctx.pathParam("id"));
+            ctx.json(Map.of("cancelled", cancelled));
         });
 
         // --- Structure preview (virtual reorganized tree) ---

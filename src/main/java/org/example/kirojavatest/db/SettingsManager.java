@@ -72,6 +72,8 @@ public class SettingsManager {
         settings.putIfAbsent("liveMode", false);
         settings.putIfAbsent("directoryStructure", "reverse-date");
         settings.putIfAbsent("theme", "light");
+        settings.putIfAbsent("backgroundTaskTimeout", 300);
+        settings.putIfAbsent("backgroundQueueThreshold", 10);
     }
 
     @SuppressWarnings("unchecked")

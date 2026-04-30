@@ -4,6 +4,7 @@
     <button class="admin-tab" data-tab="database">Database Management</button>
     <button class="admin-tab" data-tab="dir-structure">Directory Structure</button>
     <button class="admin-tab" data-tab="connections">Connections</button>
+    <button class="admin-tab" data-tab="optimizations">Optimizations</button>
 </div>
 
 <!-- UI Options tab -->
@@ -36,6 +37,27 @@
         <option value="reverse-date">Reverse Date Structure (yyyy/mm/dd)</option>
     </select>
     <p id="dir-structure-status" style="font-size:13px; color:#8d6e63; margin-top:8px;"></p>
+</div>
+
+<!-- Optimizations tab -->
+<div class="admin-panel card" id="tab-optimizations" style="display:none;">
+    <h2 class="table-title">Optimizations</h2>
+
+    <div style="max-width:480px;">
+        <label class="form-label" for="opt-task-timeout">Background Task Timeout (seconds)</label>
+        <p style="font-size:12px; color:var(--text-secondary); margin-bottom:4px;">
+            Maximum number of seconds each background task may run before it is automatically stopped.
+        </p>
+        <input class="form-input" id="opt-task-timeout" type="number" min="1" style="width:120px;">
+
+        <label class="form-label" for="opt-queue-threshold" style="margin-top:12px;">Background Task Queue Threshold (seconds)</label>
+        <p style="font-size:12px; color:var(--text-secondary); margin-bottom:4px;">
+            Amount of time a task may run before it is moved to a background queue that returns an update event for the UI when complete.
+        </p>
+        <input class="form-input" id="opt-queue-threshold" type="number" min="1" style="width:120px;">
+
+        <p id="opt-status" style="font-size:13px; color:var(--accent); margin-top:8px;"></p>
+    </div>
 </div>
 
 <!-- Connections tab -->

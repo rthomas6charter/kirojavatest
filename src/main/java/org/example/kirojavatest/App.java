@@ -4,6 +4,7 @@ import org.example.kirojavatest.api.ApiController;
 import org.example.kirojavatest.db.FileDatabase;
 import org.example.kirojavatest.db.FileScanner;
 import org.example.kirojavatest.db.SettingsManager;
+import org.example.kirojavatest.tasks.TaskQueue;
 import org.example.kirojavatest.web.AuthController;
 import org.example.kirojavatest.web.HomeController;
 import com.github.jknack.handlebars.Handlebars;
@@ -46,7 +47,8 @@ public class App {
 
             SettingsManager settingsMgr = new SettingsManager();
             FileDatabase fileDb = new FileDatabase();
-            ApiController.register(config, settingsMgr, fileDb);
+            TaskQueue taskQueue = new TaskQueue(settingsMgr);
+            ApiController.register(config, settingsMgr, fileDb, taskQueue);
 
             // Access logging
             config.routes.before(ctx -> ctx.attribute("requestStart", System.currentTimeMillis()));

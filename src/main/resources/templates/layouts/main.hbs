@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        // Apply theme immediately to prevent white flash on page load
+        (function(){var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t);})();
+    </script>
     <title>{{appName}} — {{title}}</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">

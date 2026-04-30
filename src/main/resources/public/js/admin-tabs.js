@@ -92,6 +92,42 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // --- Optimizations ---
+    var optTimeout = document.getElementById('opt-task-timeout');
+    var optThreshold = document.getElementById('opt-queue-threshold');
+    var optStatus = document.getElementById('opt-status');
+    if (optTimeout && optThreshold) {
+        fetch('/api/settings')
+            .then(function (res) { return res.ok ? res.json() : {}; })
+            .then(function (settings) {
+                optTimeout.value = settings.backgroundTaskTimeout || 300;
+                optThreshold.value = settings.backgroundQueueThreshold || 10;
+            })
+            .catch(function () {});
+
+        function saveOpt() {
+            var updates = {
+                backgroundTaskTimeout: parseInt(optTimeout.value, 10) || 300,
+                backgroundQueueThreshold: parseInt(optThreshold.value, 10) || 10
+            };
+            fetch('/api/settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updates)
+            })
+            .then(function (res) {
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                if (optStatus) optStatus.textContent = 'Saved.';
+                setTimeout(function () { if (optStatus) optStatus.textContent = ''; }, 2000);
+            })
+            .catch(function (err) {
+                if (optStatus) optStatus.textContent = 'Failed: ' + err.message;
+            });
+        }
+        optTimeout.addEventListener('change', saveOpt);
+        optThreshold.addEventListener('change', saveOpt);
+    }
+
     // --- Database stats ---
     var dbStatsEl = document.getElementById('db-stats');
     if (dbStatsEl) {

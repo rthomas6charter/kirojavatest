@@ -1,9 +1,4 @@
-// Apply theme immediately (before DOMContentLoaded to avoid flash)
-(function () {
-    var theme = localStorage.getItem('theme') || 'light';
-    applyTheme(theme);
-})();
-
+// Theme is applied by inline script in <head> to prevent flash
 function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);

@@ -59,3 +59,15 @@
 115. Create a parent item named "Files" and place the current "Home" menu within "Files" as a sub-menu item named "Existing View". Then move the "Structure" menu item under "Files" as a second sub-menu item named "Reorg Preview"
 
 116. In the same way the Existing View persists which folders are expanded or collapsed, and the scroll position, make the Reorg Preview retain the last shown state, so that navigating between the two views does not require the user to manually reopen everything and scroll.
+
+117. Add a tab to the Admin group for Optimizations and include settings for "Background Task Timeout" - Maximum number of seconds each background task may run before it is automatically stopped. "Background Task Queue Threshold" - Amount of time a task may run before it is instead added to a queue of background tasks that return an update event for the UI when they complete.
+
+118. Implement a queue of background tasks that will track long-running subtasks until they complete. An example of a subtask is the comparison/analysis of a large sub-directory structure. This allows the UI to remain responsive while server-side tasks are running. Once this is in place, advise on how the server could monitor started tasks against a threshold timer and push them to the background. Also advise on how items in the UI could be granularly decorated to indicate they will update when a background task completes.
+
+119. When the triple bar icon is clicked to collapse the side menu, the icon representations of the menu items are no longer centered in the narrow sidebar such that they are still visible, and clickable.
+
+120. That looks the same as before. Is it possible to make the collapsed sidebar slightly wider to accommodate the nested icons, and still show the nested icon-only items with slight indentation in their group?
+
+121. That's slightly better but the sub-items have an empty description area that pushes them to the left, making them appear negatively indented. Is there a way to fix that?
+
+122. The collapsed menu looks better now. When navigating from one menu item to another in dark mode, the entire page flashes white. Is there a way to set the background color so that the alarming flash is gone, while preserving the same non-flashing behavior in light mode?
