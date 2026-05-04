@@ -285,7 +285,7 @@ This plan covers the implementation of the file management application's core fe
     - Material Icons loaded
     - _Requirements: 13.3, 13.4, 13.5_
 
-- [ ] 19. Final checkpoint - Ensure all tests pass
+- [x] 19. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
