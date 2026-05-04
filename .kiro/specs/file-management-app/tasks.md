@@ -7,30 +7,30 @@ This plan covers the implementation of the file management application's core fe
 ## Tasks
 
 - [ ] 1. Core infrastructure and configuration
-  - [ ] 1.1 Verify and complete AppConfig property loading with system property override and placeholder resolution
+  - [x] 1.1 Verify and complete AppConfig property loading with system property override and placeholder resolution
     - Ensure `AppConfig.get()` resolves `${user.home}` and other placeholders correctly
     - Ensure system properties (`-D` flags) take precedence over file properties
     - _Requirements: 13.1_
-  - [ ] 1.2 Verify Javalin server starts on configurable port with static file serving and access logging
+  - [x] 1.2 Verify Javalin server starts on configurable port with static file serving and access logging
     - Confirm access log includes method, path, status, duration, and client IP
     - Confirm polling endpoints log to separate logger
     - _Requirements: 13.1, 13.6, 13.7_
-  - [ ] 1.3 Write property tests for access log field completeness
+  - [x] 1.3 Write property tests for access log field completeness
     - **Property 26: File scan populates database** (verify scan produces records for all files)
     - **Validates: Requirements 13.9**
 
 - [ ] 2. Authentication system
-  - [ ] 2.1 Verify AuthController login/logout flow
+  - [x] 2.1 Verify AuthController login/logout flow
     - Valid credentials create session and set signed remember cookie
     - Invalid credentials render error with retained username
     - Logout invalidates session, removes cookie, redirects to /login
     - _Requirements: 9.1, 9.2, 9.6_
-  - [ ] 2.2 Verify cookie signing and validation with HMAC-SHA256
+  - [x] 2.2 Verify cookie signing and validation with HMAC-SHA256
     - Cookie format: base64(payload).signature
     - Payload: username|expiresAt
     - Constant-time comparison for signature validation
     - _Requirements: 9.7, 9.8_
-  - [ ] 2.3 Verify before-handler redirects unauthenticated users to /login for protected routes
+  - [x] 2.3 Verify before-handler redirects unauthenticated users to /login for protected routes
     - Exempt paths: /login, /css/*, /js/*, /api/*
     - Restore session from valid cookie without re-login
     - Clear invalid/expired cookies
@@ -42,12 +42,12 @@ This plan covers the implementation of the file management application's core fe
     - **Validates: Requirements 9.4, 9.5, 9.7, 9.8**
 
 - [ ] 3. File scanning and database layer
-  - [ ] 3.1 Verify FileDatabase schema initialization and CRUD operations
+  - [x] 3.1 Verify FileDatabase schema initialization and CRUD operations
     - file_info table with upsert, query by path, remove stale
     - duplicate_pair table with add/clear/query operations
     - Database stats endpoint
     - _Requirements: 13.9, 14.1_
-  - [ ] 3.2 Verify FileScanner walks data directory, computes checksums, and populates database
+  - [x] 3.2 Verify FileScanner walks data directory, computes checksums, and populates database
     - Skip .ui-state directory
     - Reuse existing checksum if file unchanged (same size + modified time)
     - Remove stale records after scan
@@ -59,18 +59,18 @@ This plan covers the implementation of the file management application's core fe
     - **Validates: Requirements 14.1, 14.2**
 
 - [ ] 4. File browser API
-  - [ ] 4.1 Implement/verify GET /api/files endpoint with directory listing
+  - [x] 4.1 Implement/verify GET /api/files endpoint with directory listing
     - List immediate children sorted: directories first, then files, alphabetically within each group
     - Support ?path= for subdirectory navigation with path traversal prevention
     - Support ?connection= for connection-based root selection
     - Create data directory if it doesn't exist
     - _Requirements: 1.1, 1.2, 1.9, 1.12_
-  - [ ] 4.2 Implement file metadata enrichment in listing response
+  - [x] 4.2 Implement file metadata enrichment in listing response
     - Include name, created, modified, size fields for files
     - Compute and include suggestedPath via DatePathUtil for files not in correct path
     - Include extMismatch flag via MagicNumberUtil for magic number mismatches
     - _Requirements: 1.4, 1.10, 1.11_
-  - [ ] 4.3 Implement/verify expand/collapse state persistence (GET/POST /api/files/state)
+  - [x] 4.3 Implement/verify expand/collapse state persistence (GET/POST /api/files/state)
     - Save expanded paths per user to JSON file in .ui-state directory
     - Load state from disk on first request, cache in memory
     - _Requirements: 1.3_
@@ -85,15 +85,15 @@ This plan covers the implementation of the file management application's core fe
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 6. Duplicate detection and script generation
-  - [ ] 6.1 Verify FileAnalyzer duplicate detection (size-first then SHA-256)
+  - [x] 6.1 Verify FileAnalyzer duplicate detection (size-first then SHA-256)
     - Group files by size, then compute checksums only for size-matched groups
     - Return DuplicateGroup records with checksum, file size, and file list
     - _Requirements: 14.1, 14.2, 14.4_
-  - [ ] 6.2 Verify GET /api/files/duplicates returns groups with metadata
+  - [x] 6.2 Verify GET /api/files/duplicates returns groups with metadata
     - Each group entry includes path, name, created, modified
     - Return flat list of all duplicate paths for UI highlighting
     - _Requirements: 1.5, 1.6_
-  - [ ] 6.3 Verify GET /api/scripts/remove-duplicates generates correct shell script
+  - [x] 6.3 Verify GET /api/scripts/remove-duplicates generates correct shell script
     - Script keeps first file in each group, removes the rest
     - Uses DATA_DIR variable and shell-escaped paths
     - _Requirements: 3.2, 14.3_
@@ -102,17 +102,17 @@ This plan covers the implementation of the file management application's core fe
     - **Validates: Requirements 14.3, 3.2**
 
 - [ ] 7. File reorganization
-  - [ ] 7.1 Verify DatePathUtil computes YYYY/MM/DD/filename target paths from file creation dates
+  - [x] 7.1 Verify DatePathUtil computes YYYY/MM/DD/filename target paths from file creation dates
     - datePath() returns YYYY/MM/DD
     - targetPath() returns YYYY/MM/DD/filename
     - isInCorrectDatePath() checks if relative path matches target
     - _Requirements: 15.1, 15.2, 15.4_
-  - [ ] 7.2 Verify GET /api/scripts/reorganize generates correct shell script
+  - [x] 7.2 Verify GET /api/scripts/reorganize generates correct shell script
     - Script creates target directories with mkdir -p
     - Script moves files not in correct path to their target
     - Skips .ui-state directory
     - _Requirements: 3.3, 15.3_
-  - [ ] 7.3 Verify GET /api/structure returns virtual reorganized tree
+  - [x] 7.3 Verify GET /api/structure returns virtual reorganized tree
     - Each entry has virtualPath, name, dupCount, sources, moved flag
     - moved=true when actual path differs from target path
     - dupCount reflects number of source files at same virtual path
@@ -126,7 +126,7 @@ This plan covers the implementation of the file management application's core fe
     - **Validates: Requirements 2.2, 2.3, 15.1, 15.2, 15.3, 15.4**
 
 - [ ] 8. Summary statistics
-  - [ ] 8.1 Verify GET /api/summary returns all required statistics
+  - [x] 8.1 Verify GET /api/summary returns all required statistics
     - totalFiles, totalDirs, totalSize, dupGroupCount, reclaimableBytes, filesAfterDedup, needsReorgCount
     - filesAfterDedup = totalFiles - (dupFileCount - dupGroupCount)
     - reclaimableBytes = sum of wastedBytes across all groups
@@ -136,17 +136,17 @@ This plan covers the implementation of the file management application's core fe
     - **Validates: Requirements 3.1**
 
 - [ ] 9. Connections management
-  - [ ] 9.1 Implement/verify CRUD endpoints for connections (GET/POST/PUT/DELETE /api/connections)
+  - [x] 9.1 Implement/verify CRUD endpoints for connections (GET/POST/PUT/DELETE /api/connections)
     - Support File, SMB, SFTP types
     - Base64 encode passwords on write, decode on read
     - Store in .ui-state/connections.json
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
-  - [ ] 9.2 Implement/verify connection validation (POST /api/connections/{index}/validate)
+  - [x] 9.2 Implement/verify connection validation (POST /api/connections/{index}/validate)
     - File: verify subdirectory exists within data directory
     - SMB: TCP connect to host:445 with 5s timeout
     - SFTP: TCP connect to host:port with 5s timeout
     - _Requirements: 4.5, 4.6, 4.7, 4.8_
-  - [ ] 9.3 Implement/verify health check system (POST /api/connections/check-all)
+  - [x] 9.3 Implement/verify health check system (POST /api/connections/check-all)
     - Check all active connections
     - Mark unreachable as offline
     - Restore previously offline connections that are now reachable
@@ -162,11 +162,11 @@ This plan covers the implementation of the file management application's core fe
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 11. Job templates and jobs
-  - [ ] 11.1 Implement/verify Job Template CRUD (GET/POST/PUT/DELETE /api/job-templates)
+  - [x] 11.1 Implement/verify Job Template CRUD (GET/POST/PUT/DELETE /api/job-templates)
     - Store name, sourceType, options (reorganize, removeDuplicates, sendNotification, email), target
     - Persist in .ui-state/job-templates.json
     - _Requirements: 5.1, 5.2_
-  - [ ] 11.2 Implement/verify Job CRUD (GET/POST/PUT/DELETE /api/jobs)
+  - [x] 11.2 Implement/verify Job CRUD (GET/POST/PUT/DELETE /api/jobs)
     - Create job from template index with snapshot of template settings
     - Assign UUID, set status=created, record createdAt
     - Support status updates (created → running → completed/error)
@@ -182,7 +182,7 @@ This plan covers the implementation of the file management application's core fe
     - **Validates: Requirements 5.1, 5.2, 6.1, 6.3, 6.5, 6.6**
 
 - [ ] 12. Archive templates
-  - [ ] 12.1 Implement/verify Archive Template CRUD (GET/POST/PUT/DELETE /api/archive-templates)
+  - [x] 12.1 Implement/verify Archive Template CRUD (GET/POST/PUT/DELETE /api/archive-templates)
     - Store name, capacityMb, outputFormat (tar, imgburn, iso)
     - Persist in .ui-state/archive-templates.json
     - _Requirements: 7.1, 7.2, 7.3, 7.4_
@@ -191,7 +191,7 @@ This plan covers the implementation of the file management application's core fe
     - **Validates: Requirements 7.1, 7.2**
 
 - [ ] 13. Known faces
-  - [ ] 13.1 Implement/verify faces API (GET /api/faces, GET/PUT /api/faces/{index})
+  - [x] 13.1 Implement/verify faces API (GET /api/faces, GET/PUT /api/faces/{index})
     - Read from {data_dir}/known_faces.json
     - Update only non-embedding fields on PUT
     - Return empty list if file doesn't exist
@@ -201,11 +201,11 @@ This plan covers the implementation of the file management application's core fe
     - **Validates: Requirements 8.2**
 
 - [ ] 14. Settings and admin
-  - [ ] 14.1 Implement/verify Settings API (GET/PUT /api/settings)
+  - [x] 14.1 Implement/verify Settings API (GET/PUT /api/settings)
     - Persist to .ui-state/settings.json
     - Apply defaults on first load (liveMode, directoryStructure, theme, backgroundTaskTimeout, backgroundQueueThreshold, checkConnectionsInterval)
     - _Requirements: 10.2, 10.4, 10.5, 10.6_
-  - [ ] 14.2 Implement/verify database stats endpoint (GET /api/db/stats)
+  - [x] 14.2 Implement/verify database stats endpoint (GET /api/db/stats)
     - Return path, sizeBytes, fileCount, duplicatePairCount, duplicateGroupCount, needsReorgCount, totalTrackedBytes, sqliteVersion, pageSize, pageCount, journalMode
     - _Requirements: 10.3_
   - [ ] 14.3 Write property tests for settings
@@ -213,12 +213,12 @@ This plan covers the implementation of the file management application's core fe
     - **Validates: Requirements 10.6**
 
 - [ ] 15. Background task queue
-  - [ ] 15.1 Implement/verify TaskQueue with thread pool, timeout watchdog, and task lifecycle
+  - [x] 15.1 Implement/verify TaskQueue with thread pool, timeout watchdog, and task lifecycle
     - Submit tasks with type, description, and work consumer
     - Track status transitions: QUEUED → RUNNING → COMPLETED/FAILED/TIMED_OUT
     - Cancel support, completed-since filtering, active task listing
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5_
-  - [ ] 15.2 Implement/verify task API endpoints (GET /api/tasks, /api/tasks/active, /api/tasks/completed, DELETE /api/tasks/{id})
+  - [x] 15.2 Implement/verify task API endpoints (GET /api/tasks, /api/tasks/active, /api/tasks/completed, DELETE /api/tasks/{id})
     - Return task maps with all fields (id, type, description, status, progress, timestamps, result, error)
     - Support ?since= parameter for completed tasks
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5_
@@ -229,7 +229,7 @@ This plan covers the implementation of the file management application's core fe
     - **Validates: Requirements 12.2, 12.3, 12.4**
 
 - [ ] 16. Search functionality
-  - [ ] 16.1 Implement/verify search endpoint (GET /search?q=)
+  - [x] 16.1 Implement/verify search endpoint (GET /search?q=)
     - Filter results by case-insensitive match against all field values
     - Render search results page with query and clear button
     - _Requirements: 11.1, 11.2, 11.3_
@@ -237,8 +237,8 @@ This plan covers the implementation of the file management application's core fe
     - **Property 22: Search filtering correctness**
     - **Validates: Requirements 11.1**
 
-- [ ] 17. Frontend implementation
-  - [ ] 17.1 Implement/verify file-tree.js with lazy-load tree, expand/collapse, state persistence, duplicate overlay
+- [x] 17. Frontend implementation
+  - [x] 17.1 Implement/verify file-tree.js with lazy-load tree, expand/collapse, state persistence, duplicate overlay
     - Sorted display (dirs first, alpha within groups)
     - Collapse All button
     - Duplicate row highlighting (red) and multi-file icon
@@ -248,38 +248,38 @@ This plan covers the implementation of the file management application's core fe
     - Magic number alert badge ("fn")
     - Suggested reorg path display
     - _Requirements: 1.1–1.12_
-  - [ ] 17.2 Implement/verify structure.js with virtual tree rendering
+  - [x] 17.2 Implement/verify structure.js with virtual tree rendering
     - Display files at target paths
     - Highlight moved files
     - Show duplicate count badges with source path tooltips
     - Persist expand/collapse via localStorage
     - Preserve scroll position on update
     - _Requirements: 2.1–2.5_
-  - [ ] 17.3 Implement/verify app.js with theme, sidebar, polling, and summary panel
+  - [x] 17.3 Implement/verify app.js with theme, sidebar, polling, and summary panel
     - Theme initialization with flash prevention (read from localStorage before render)
     - Collapsible sidebar with icon-only mode
     - Summary statistics display
     - Download buttons for remove-duplicates and reorganize scripts
     - _Requirements: 3.1–3.3, 13.2, 13.3_
-  - [ ] 17.4 Implement/verify connections.js, job-templates.js, jobs.js, faces.js
+  - [x] 17.4 Implement/verify connections.js, job-templates.js, jobs.js, faces.js
     - Connection CRUD forms with type-specific fields and validation
     - Offline overlay with reconnect button
     - Job template forms with connection dropdowns (disabled when no connections)
     - Job creation from templates with status display
     - Face list with inline editing
     - _Requirements: 4.1–4.11, 5.1–5.3, 6.1–6.6, 8.1–8.3_
-  - [ ] 17.5 Implement/verify admin.hbs with tabbed interface
+  - [x] 17.5 Implement/verify admin.hbs with tabbed interface
     - Tabs: UI Options, Database Management, Directory Structure, Connections, Optimizations
     - Theme toggle, DB stats display, structure type selector, optimization settings
     - _Requirements: 10.1–10.6_
 
-- [ ] 18. Infrastructure and deployment
-  - [ ] 18.1 Verify Dockerfile and docker-compose.yaml
+- [x] 18. Infrastructure and deployment
+  - [x] 18.1 Verify Dockerfile and docker-compose.yaml
     - Multi-stage build producing minimal runtime image
     - Volume mount for data directory
     - Port mapping for server.port
     - _Requirements: 13.8_
-  - [ ] 18.2 Verify CSS theming with earth-tone color scheme and Material Icons
+  - [x] 18.2 Verify CSS theming with earth-tone color scheme and Material Icons
     - Light and dark theme CSS custom properties
     - Flash prevention script in template head
     - Material Icons loaded
