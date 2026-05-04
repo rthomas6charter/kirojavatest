@@ -74,6 +74,7 @@ public class SettingsManager {
         settings.putIfAbsent("theme", "light");
         settings.putIfAbsent("backgroundTaskTimeout", 300);
         settings.putIfAbsent("backgroundQueueThreshold", 10);
+        settings.putIfAbsent("checkConnectionsInterval", 3600);
     }
 
     @SuppressWarnings("unchecked")

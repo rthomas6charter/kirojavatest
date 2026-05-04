@@ -23,6 +23,40 @@ document.addEventListener('DOMContentLoaded', function () {
             container.innerHTML = '<p class="empty-state">Failed to load: ' + escapeHtml(err.message) + '</p>';
         });
 
+    // Check if the selected connection is offline (set by file-tree.js via localStorage)
+    function checkOfflineOverlay() {
+        var offlineConn = localStorage.getItem('connOffline');
+        if (offlineConn !== null) {
+            var msg = localStorage.getItem('connOfflineMsg') || 'The selected source is currently offline.';
+            showStructureOfflineOverlay(msg);
+        } else {
+            removeStructureOfflineOverlay();
+        }
+    }
+
+    function showStructureOfflineOverlay(message) {
+        removeStructureOfflineOverlay();
+        var overlay = document.createElement('div');
+        overlay.id = 'struct-offline-overlay';
+        overlay.className = 'conn-offline-overlay';
+        overlay.innerHTML = '<div class="conn-offline-content">'
+            + '<span class="material-icons" style="font-size:48px;color:#e65100;">cloud_off</span>'
+            + '<p style="margin:12px 0 4px;font-size:16px;font-weight:500;color:var(--text);">Source Offline</p>'
+            + '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">' + escapeHtml(message) + '</p>'
+            + '<p style="font-size:12px;color:var(--text-secondary);">Switch to the Existing View to reconnect.</p>'
+            + '</div>';
+        container.innerHTML = '';
+        container.appendChild(overlay);
+    }
+
+    function removeStructureOfflineOverlay() {
+        var existing = document.getElementById('struct-offline-overlay');
+        if (existing) existing.remove();
+    }
+
+    checkOfflineOverlay();
+    setInterval(checkOfflineOverlay, 5000);
+
     // Save scroll position on scroll
     var wrapper = container.closest('.file-tree-wrapper');
     if (wrapper) {

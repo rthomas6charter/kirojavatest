@@ -1,0 +1,43 @@
+{{#> layouts/main}}
+<div class="card">
+    <h2 class="table-title">Jobs
+        <button class="icon-btn-sm" id="jobs-refresh-btn" title="Refresh" style="margin-left:8px; color:#5d4037; vertical-align:middle;">
+            <span class="material-icons">refresh</span>
+        </button>
+    </h2>
+
+    <div style="margin-bottom:16px;">
+        <label class="form-label" for="jobs-create-tpl">Create Job from Template</label>
+        <div style="display:flex; gap:8px; align-items:center;">
+            <select class="form-input" id="jobs-create-tpl" style="width:auto; min-width:240px; margin-bottom:0;">
+            </select>
+            <button class="btn btn-sm" id="jobs-create-btn">
+                <span class="material-icons btn-icon">add</span> Create Job
+            </button>
+        </div>
+    </div>
+
+    <div id="jobs-list">
+        <p class="empty-state">Loading...</p>
+    </div>
+</div>
+
+<!-- Error details dialog -->
+<div class="face-dialog-backdrop" id="jobs-error-backdrop" style="display:none;">
+    <div class="face-dialog" style="max-width:600px;">
+        <button class="dup-overlay-close" id="jobs-error-close" aria-label="Close">
+            <span class="material-icons">close</span>
+        </button>
+        <h2 class="face-dialog-title" style="color:#c62828;">
+            <span class="material-icons" style="vertical-align:middle; margin-right:4px;">error</span>
+            Job Errors
+        </h2>
+        <div id="jobs-error-content" style="max-height:50vh; overflow-y:auto;"></div>
+        <div class="face-dialog-actions">
+            <button type="button" class="btn btn-sm" id="jobs-error-ok-btn" style="background:#efebe9;color:#5d4037;">Close</button>
+        </div>
+    </div>
+</div>
+
+<script src="/js/jobs.js"></script>
+{{/layouts/main}}

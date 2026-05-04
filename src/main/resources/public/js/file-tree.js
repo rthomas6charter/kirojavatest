@@ -10,6 +10,69 @@ document.addEventListener('DOMContentLoaded', function () {
     var stateLoaded = false;
     var saveTimer = null;
     var lastRootData = null;
+    var selectedConnection = '';  // '' = default data dir
+
+    // Connection selector
+    var connSelector = document.getElementById('conn-selector');
+    if (connSelector) {
+        connSelector.addEventListener('change', function () {
+            selectedConnection = connSelector.value;
+            expandedPaths.clear();
+            lastRootJson = '';
+            lastDupJson = '';
+            lastRootData = null;
+            container.innerHTML = '<p class="empty-state">Loading...</p>';
+            loadRoot();
+        });
+        loadConnections();
+    }
+
+    function loadConnections() {
+        fetch('/api/connections')
+            .then(function (res) { return res.ok ? res.json() : []; })
+            .then(function (conns) {
+                if (!connSelector) return;
+                // Keep the default option, remove others
+                while (connSelector.options.length > 1) connSelector.remove(1);
+                var addedCount = 0;
+                (Array.isArray(conns) ? conns : []).forEach(function (c, idx) {
+                    if (!c.name) return;
+                    if (c.active !== true && c.active !== 'true') return;
+                    var opt = document.createElement('option');
+                    opt.value = String(idx);
+                    var typeLabel = (c.type || 'smb').toUpperCase();
+                    if (c.type === 'file') {
+                        opt.textContent = c.name + ' (File — ' + (c.subPath || '/') + ')';
+                    } else {
+                        opt.textContent = c.name + ' (' + typeLabel + ' — ' + (c.host || '') + ')';
+                    }
+                    connSelector.appendChild(opt);
+                    addedCount++;
+                });
+                // Disable selector when only the default is available
+                var sourceLabel = connSelector.previousElementSibling;
+                if (addedCount === 0) {
+                    connSelector.disabled = true;
+                    var tip = 'Other sources can be selected when connections are created and activated in Admin \u2192 Connections.';
+                    connSelector.title = tip;
+                    if (sourceLabel) sourceLabel.title = tip;
+                    // Reset to default if current selection is no longer valid
+                    if (selectedConnection) {
+                        selectedConnection = '';
+                        connSelector.value = '';
+                    }
+                } else {
+                    connSelector.disabled = false;
+                    connSelector.title = '';
+                    if (sourceLabel) sourceLabel.title = '';
+                }
+                // Restore previous selection if still valid
+                if (selectedConnection && connSelector.querySelector('option[value="' + selectedConnection + '"]')) {
+                    connSelector.value = selectedConnection;
+                }
+            })
+            .catch(function () {});
+    }
 
     // Collapse all button
     var collapseBtn = document.getElementById('collapse-all-btn');
@@ -54,7 +117,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function fetchLevel(path) {
-        var url = '/api/files' + (path ? '?path=' + encodeURIComponent(path) : '');
+        var url = '/api/files?';
+        var params = [];
+        if (path) params.push('path=' + encodeURIComponent(path));
+        if (selectedConnection) params.push('connection=' + encodeURIComponent(selectedConnection));
+        url += params.join('&');
         return fetch(url)
             .then(function (res) {
                 if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -65,6 +132,13 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderRoot(data) {
         lastRootData = data;
         var wrapper = container.closest('.file-tree-wrapper');
+
+        // Check for offline connection
+        removeOfflineOverlay();
+        if (data.offline) {
+            showOfflineOverlay(data.notice || 'The selected source is currently offline.');
+            return;
+        }
 
         // Find a visible anchor element to stabilize scroll position
         var anchor = findVisibleAnchor(wrapper);
@@ -528,5 +602,64 @@ document.addEventListener('DOMContentLoaded', function () {
             var days = Math.floor(hrs / 24);
             return sign + days + 'd ' + (hrs % 24) + 'h';
         } catch (e) { return '—'; }
+    }
+
+    // --- Offline overlay ---
+
+    function showOfflineOverlay(message) {
+        removeOfflineOverlay();
+        container.innerHTML = '';
+        var overlay = document.createElement('div');
+        overlay.id = 'conn-offline-overlay';
+        overlay.className = 'conn-offline-overlay';
+        overlay.innerHTML = '<div class="conn-offline-content">'
+            + '<span class="material-icons" style="font-size:48px;color:#e65100;">cloud_off</span>'
+            + '<p style="margin:12px 0 4px;font-size:16px;font-weight:500;color:var(--text);">Source Offline</p>'
+            + '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">' + escapeHtml(message) + '</p>'
+            + '<button class="btn btn-sm" id="conn-reconnect-btn">'
+            + '<span class="material-icons btn-icon">refresh</span> Try Reconnect Now</button>'
+            + '</div>';
+        container.appendChild(overlay);
+        document.getElementById('conn-reconnect-btn').addEventListener('click', function () {
+            tryReconnect();
+        });
+        // Also store offline state so structure.js can read it
+        localStorage.setItem('connOffline', selectedConnection || '');
+        localStorage.setItem('connOfflineMsg', message);
+    }
+
+    function removeOfflineOverlay() {
+        var existing = document.getElementById('conn-offline-overlay');
+        if (existing) existing.remove();
+        localStorage.removeItem('connOffline');
+        localStorage.removeItem('connOfflineMsg');
+    }
+
+    function tryReconnect() {
+        if (!selectedConnection) return;
+        var btn = document.getElementById('conn-reconnect-btn');
+        if (btn) { btn.disabled = true; btn.textContent = 'Checking...'; }
+        fetch('/api/connections/' + encodeURIComponent(selectedConnection) + '/validate', { method: 'POST' })
+            .then(function (res) { return res.json(); })
+            .then(function (result) {
+                if (result.valid) {
+                    // Clear offline flag on the server
+                    return fetch('/api/connections/' + encodeURIComponent(selectedConnection), {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ offline: false })
+                    }).then(function () {
+                        removeOfflineOverlay();
+                        loadRoot();
+                    });
+                } else {
+                    alert('Still offline: ' + (result.error || 'Connection failed'));
+                    if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-icons btn-icon">refresh</span> Try Reconnect Now'; }
+                }
+            })
+            .catch(function (err) {
+                alert('Reconnect failed: ' + err.message);
+                if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-icons btn-icon">refresh</span> Try Reconnect Now'; }
+            });
     }
 });

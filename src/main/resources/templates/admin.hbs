@@ -56,6 +56,12 @@
         </p>
         <input class="form-input" id="opt-queue-threshold" type="number" min="1" style="width:120px;">
 
+        <label class="form-label" for="opt-conn-check" style="margin-top:12px;">Check Connections Interval (seconds)</label>
+        <p style="font-size:12px; color:var(--text-secondary); margin-bottom:4px;">
+            How often active connections are re-checked for availability. Default: 3600 (1 hour).
+        </p>
+        <input class="form-input" id="opt-conn-check" type="number" min="60" style="width:120px;">
+
         <p id="opt-status" style="font-size:13px; color:var(--accent); margin-top:8px;"></p>
     </div>
 </div>
@@ -76,6 +82,7 @@
         <div style="margin-bottom:12px;">
             <label class="form-label" for="conn-type">Type</label>
             <select class="form-input" id="conn-type" name="type" style="width:auto;min-width:140px;">
+                <option value="file">File</option>
                 <option value="smb">SMB</option>
                 <option value="sftp">SFTP</option>
             </select>

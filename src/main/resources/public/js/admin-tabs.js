@@ -95,6 +95,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- Optimizations ---
     var optTimeout = document.getElementById('opt-task-timeout');
     var optThreshold = document.getElementById('opt-queue-threshold');
+    var optConnCheck = document.getElementById('opt-conn-check');
     var optStatus = document.getElementById('opt-status');
     if (optTimeout && optThreshold) {
         fetch('/api/settings')
@@ -102,6 +103,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(function (settings) {
                 optTimeout.value = settings.backgroundTaskTimeout || 300;
                 optThreshold.value = settings.backgroundQueueThreshold || 10;
+                if (optConnCheck) optConnCheck.value = settings.checkConnectionsInterval || 3600;
             })
             .catch(function () {});
 
@@ -110,6 +112,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 backgroundTaskTimeout: parseInt(optTimeout.value, 10) || 300,
                 backgroundQueueThreshold: parseInt(optThreshold.value, 10) || 10
             };
+            if (optConnCheck) updates.checkConnectionsInterval = parseInt(optConnCheck.value, 10) || 3600;
             fetch('/api/settings', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -126,6 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         optTimeout.addEventListener('change', saveOpt);
         optThreshold.addEventListener('change', saveOpt);
+        if (optConnCheck) optConnCheck.addEventListener('change', saveOpt);
     }
 
     // --- Database stats ---

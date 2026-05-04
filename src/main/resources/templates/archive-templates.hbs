@@ -1,0 +1,50 @@
+{{#> layouts/main}}
+<div class="card">
+    <h2 class="table-title">Archive Templates
+        <button class="icon-btn-sm" id="at-refresh-btn" title="Refresh" style="margin-left:8px; color:#5d4037; vertical-align:middle;">
+            <span class="material-icons">refresh</span>
+        </button>
+    </h2>
+    <div id="at-list">
+        <p class="empty-state">Loading...</p>
+    </div>
+</div>
+
+<div class="card" style="margin-top:16px;">
+    <h2 class="table-title" id="at-form-title">Create Archive Template</h2>
+    <form id="at-form" style="max-width:520px;">
+        <label class="form-label" for="at-name">Template Name</label>
+        <input class="form-input" id="at-name" name="name" type="text" required placeholder="e.g. Blu-ray Archive">
+
+        <label class="form-label" for="at-capacity" style="margin-top:12px;">Media Capacity Size (MB)</label>
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <input class="form-input" id="at-capacity" name="mediaCapacityMB" type="number" min="1" required placeholder="e.g. 25000" style="width:140px; margin-bottom:0;">
+            <button type="button" class="btn btn-sm at-preset" data-mb="700">CD-R</button>
+            <button type="button" class="btn btn-sm at-preset" data-mb="4700">DVD-R</button>
+            <button type="button" class="btn btn-sm at-preset" data-mb="8500">DVD-R DL</button>
+            <button type="button" class="btn btn-sm at-preset" data-mb="25000">BD-R</button>
+            <button type="button" class="btn btn-sm at-preset" data-mb="50000">BD-R DL</button>
+            <button type="button" class="btn btn-sm at-preset" data-mb="100000">BDXL 100</button>
+            <button type="button" class="btn btn-sm at-preset" data-mb="128000">BDXL 128</button>
+        </div>
+
+        <label class="form-label" for="at-format" style="margin-top:12px;">Output Format</label>
+        <select class="form-input" id="at-format" name="outputFormat" required style="width:auto; min-width:260px;">
+            <option value="tarFileLists">tar File Lists</option>
+            <option value="imgBurnProject">ImgBurn Project Files</option>
+            <option value="isoScript">ISO Image Generation Script</option>
+        </select>
+
+        <div style="display:flex; gap:8px; margin-top:16px;">
+            <button type="submit" class="btn" id="at-submit-btn">
+                <span class="material-icons btn-icon">add</span> Create Template
+            </button>
+            <button type="button" class="btn" id="at-cancel-btn" style="background:#efebe9;color:#5d4037;display:none;">
+                Cancel
+            </button>
+        </div>
+    </form>
+</div>
+
+<script src="/js/archive-templates.js"></script>
+{{/layouts/main}}

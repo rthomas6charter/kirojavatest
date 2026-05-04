@@ -71,3 +71,29 @@
 121. That's slightly better but the sub-items have an empty description area that pushes them to the left, making them appear negatively indented. Is there a way to fix that?
 
 122. The collapsed menu looks better now. When navigating from one menu item to another in dark mode, the entire page flashes white. Is there a way to set the background color so that the alarming flash is gone, while preserving the same non-flashing behavior in light mode?
+
+123. Add a menu item for "Job Templates" that navigates to a UI where a Job Template can be created, and a list of existing Job Templates is shown with an option to edit or delete each list item.  To start, a Job Template will have a name, like "Re-Org Only", and will capture options for "Reorganize Files", "Remove Duplicates", "Send Completed Notification" (which requires an email address when enabled), and a selection for "Target" with options "In Place" or "To Connection".  If "To Connection" is selected the user must also select one of the named, configured "Connections"  If there are no existing connections, the "To Connection" option is disabled, and a tool tip for the "Target" selection should give instructions to create a connection first.
+
+124. Now that there is a list of named Job Templates, add a menu item to navigate to "Jobs" which shows a list of jobs that have been created, are running, are completed, or ended with errors.  When a job ended with errors, include a link on the corresponding item/row to pop up a display of the captured error messages.  Jobs should capture a copy of the settings from the template at the time the job was created so that changes to a template after a job is created (e.g. while it is still running, or later when it is reviewed) do not affect how the job is presented or how it behaves.
+
+125. The prompts do not seem to be captured in the text file any more.  Please catch up the prompts_part2.txt file and resume capturing prompt text on each action.
+
+126. Modify the hook so that after each 100 prompts are captured in a file, a new file (e.g. prompts_part3.txt) is started to continue capturing the next 100 prompts.
+
+127. On the existing view page under "files", add a selection to choose a connection as the root for the file hierarchy.  Add a "File" connection type option that allows the user to create a connection relative to the globally configured data directory root, and select a subdirectory path.  There is an implicit "connection" for the data directory's root path that does not need to be configured.  The Existing View uses that by default unless some other "file connection" or an SMB or SFTP connection is selected instead.
+
+128. If a connection is not toggled to the active status, don't show it in the "Existing View" drop down list.
+
+129. If only the default file "connection" is available as the "source" for the existing view page, disable the drop down and display a tooltip when the mouse is over the dropdown or "source" label explaining that other choices can be selected when there are non-default connections created and activated in the admin page.  Also add validation to the "activate" toggle for connections to check whether the SMB or SFTP connection can be opened successfully.  For file connections, with a subdirectory path, check that the subdirectory exists.
+
+130. On a configurable "check connections" interval, defaulting to every hour, re-check all active connections.  If a connection cannot be opened, leave its status as active, but change the status to "offline."  If the connection is currently selected as the source for "Existing View" show an overlay on both "Existing View" and "Reorg Preview" indicating the source is currently offline.  Include a "Try Reconnect Now" button in the overlay.  When the "check connections" re-check happens, if there are any "active but offline" connections, that can be opened, return their status to "active."  Upon any activity on a connection, from any context, if there is a connection or timeout error, immediately switch the connection status to offline.
+
+131. Add a source option to a job templates which allows a selection of "Default Data Dir" or "From Connection" and requires the selection of a connection if "From Connection" is selected.
+
+132. Add an Archive Templates menu item with a list of items and configuration editing form (like Job Templates).  An archive template has fields for Media Capacity Size, expressed in MB, and Output Format, which has options for "tar File Lists", "ImgBurn Project Files", and "ISO Image Generation Script"  We'll worry about implementing each of those options later.
+
+133. To the right of the Media Capacity Size input field, add some buttons with common values for a CD-R, DVD-R, DVD-R DL, BD-R, and common variations of BDXL
+
+134. Create a spec document for this project so far.
+
+135. try again

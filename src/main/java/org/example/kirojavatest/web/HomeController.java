@@ -74,6 +74,21 @@ public class HomeController {
                 "isStructure", true
         ))));
 
+        config.routes.get("/job-templates", ctx -> ctx.render("job-templates.hbs", model(ctx, Map.of(
+                "title", "Job Templates",
+                "isJobTemplates", true
+        ))));
+
+        config.routes.get("/jobs", ctx -> ctx.render("jobs.hbs", model(ctx, Map.of(
+                "title", "Jobs",
+                "isJobs", true
+        ))));
+
+        config.routes.get("/archive-templates", ctx -> ctx.render("archive-templates.hbs", model(ctx, Map.of(
+                "title", "Archive Templates",
+                "isArchiveTemplates", true
+        ))));
+
         config.routes.get("/admin", ctx -> ctx.render("admin.hbs", model(ctx, Map.of(
                 "title", "Admin",
                 "isAdmin", true

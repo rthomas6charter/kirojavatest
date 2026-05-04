@@ -22,7 +22,8 @@ public class App {
     private static final Logger pollingLog = LoggerFactory.getLogger("ACCESS.POLLING");
 
     private static final java.util.Set<String> POLLING_PATHS = java.util.Set.of(
-            "/api/files", "/api/files/duplicates", "/api/summary", "/api/files/state"
+            "/api/files", "/api/files/duplicates", "/api/summary", "/api/files/state",
+            "/api/connections/check-all"
     );
 
     public static void main(String[] args) {
@@ -80,6 +81,20 @@ public class App {
 
         int port = AppConfig.getInt("server.port", 8080);
         app.start(port);
+
+        // Schedule periodic connection health checks
+        java.util.concurrent.ScheduledExecutorService connChecker =
+                java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> {
+                    Thread t = new Thread(r, "conn-checker");
+                    t.setDaemon(true);
+                    return t;
+                });
+        // Run initial check after 30s, then on the configured interval
+        connChecker.scheduleAtFixedRate(() -> {
+            try { ApiController.checkAllConnections(); }
+            catch (Exception e) { LoggerFactory.getLogger("CONN-CHECK").warn("Connection check failed", e); }
+        }, 30, 3600, java.util.concurrent.TimeUnit.SECONDS);
+        // Also expose the settingsMgr so the interval can be re-read (future enhancement)
 
         // Initialize database and run initial scan
         FileDatabase fileDb = new FileDatabase();

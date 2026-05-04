@@ -14,6 +14,10 @@ document.addEventListener('DOMContentLoaded', function () {
     var editingIndex = -1;
 
     var FIELD_DEFS = {
+        file: [
+            { name: 'name', label: 'Name', placeholder: 'My Subfolder', required: true },
+            { name: 'subPath', label: 'Subdirectory Path', placeholder: 'photos/2026', required: true }
+        ],
         smb: [
             { name: 'name', label: 'Name', placeholder: 'My NAS', required: true },
             { name: 'host', label: 'Host', placeholder: '192.168.1.100', required: true },
@@ -34,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     var TYPE_ICONS = {
+        file: 'folder_special',
         smb: 'folder_shared',
         sftp: 'cloud_upload'
     };
@@ -113,19 +118,34 @@ document.addEventListener('DOMContentLoaded', function () {
         connections.forEach(function (conn, idx) {
             var tr = document.createElement('tr');
             var isActive = conn.active === true || conn.active === 'true';
+            var isOffline = isActive && (conn.offline === true || conn.offline === 'true');
             var type = conn.type || 'smb';
             var icon = TYPE_ICONS[type] || 'lan';
             var detail = type === 'sftp'
                 ? (conn.remotePath || '') + (conn.port ? ' :' + conn.port : '')
+                : type === 'file'
+                ? (conn.subPath || '')
                 : (conn.share || '') + (conn.domain ? ' (' + conn.domain + ')' : '');
+
+            var statusChip, statusLabel;
+            if (isOffline) {
+                statusChip = 'status-pending';
+                statusLabel = 'Offline';
+            } else if (isActive) {
+                statusChip = 'status-active';
+                statusLabel = 'Active';
+            } else {
+                statusChip = 'status-inactive';
+                statusLabel = 'Inactive';
+            }
 
             tr.innerHTML = '<td><span class="material-icons conn-type-icon" title="' + type.toUpperCase() + '">' + icon + '</span></td>'
                 + '<td>' + esc(conn.name || '') + '</td>'
                 + '<td>' + esc(conn.host || '') + '</td>'
                 + '<td>' + esc(detail) + '</td>'
                 + '<td>' + esc(conn.username || '') + '</td>'
-                + '<td><span class="status-chip ' + (isActive ? 'status-active' : 'status-inactive') + '">'
-                + (isActive ? 'Active' : 'Inactive') + '</span></td>'
+                + '<td><span class="status-chip ' + statusChip + '">'
+                + statusLabel + '</span></td>'
                 + '<td class="conn-actions"></td>';
 
             var actions = tr.querySelector('.conn-actions');
@@ -163,6 +183,25 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function toggleActive(idx, active) {
+        if (!active) {
+            // Deactivating — no validation needed
+            doToggle(idx, false);
+            return;
+        }
+        // Activating — validate first
+        fetch('/api/connections/' + idx + '/validate', { method: 'POST' })
+            .then(function (res) { return res.json(); })
+            .then(function (result) {
+                if (result.valid) {
+                    doToggle(idx, true);
+                } else {
+                    alert('Cannot activate: ' + (result.error || 'Validation failed'));
+                }
+            })
+            .catch(function (err) { alert('Validation failed: ' + err.message); });
+    }
+
+    function doToggle(idx, active) {
         fetch('/api/connections/' + idx, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },

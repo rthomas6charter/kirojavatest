@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Capture Prompt Text",
+  "description": "Appends each user prompt to the current docs/prompts_partN.txt file. After 100 prompts per file (part1: 1-85, part2: 86-185, part3: 186-285, etc.), a new file is started.",
+  "version": "1",
+  "when": {
+    "type": "promptSubmit"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Silently append the user's prompt text to the appropriate docs/prompts_partN.txt file. Steps: 1) List files in docs/ matching prompts_part*.txt to find the latest part file. 2) Read the tail of that file to find the last prompt number. 3) Calculate the next prompt number. 4) Determine which part file the next number belongs to: part1 holds prompts 1-85, part2 holds 86-185, part3 holds 186-285, and so on (each new part after part1 holds 100 prompts). If the next number exceeds the current file's range, create the next part file. 5) Append a line with the next number and the user's prompt text. Do this silently without mentioning it to the user."
+  }
+}

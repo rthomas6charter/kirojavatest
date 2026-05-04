@@ -1,0 +1,92 @@
+{{#> layouts/main}}
+<div class="card">
+    <h2 class="table-title">Job Templates
+        <button class="icon-btn-sm" id="jt-refresh-btn" title="Refresh" style="margin-left:8px; color:#5d4037; vertical-align:middle;">
+            <span class="material-icons">refresh</span>
+        </button>
+    </h2>
+    <div id="jt-list">
+        <p class="empty-state">Loading...</p>
+    </div>
+</div>
+
+<div class="card" style="margin-top:16px;">
+    <h2 class="table-title" id="jt-form-title">Create Job Template</h2>
+    <form id="jt-form" style="max-width:520px;">
+        <label class="form-label" for="jt-name">Template Name</label>
+        <input class="form-input" id="jt-name" name="name" type="text" required placeholder="e.g. Re-Org Only">
+
+        <div class="jt-option-row" style="margin-top:12px;">
+            <label class="form-label" style="margin-bottom:4px;">Source</label>
+            <div id="jt-source-wrap" class="jt-target-group">
+                <label class="jt-radio-label">
+                    <input type="radio" name="source" value="defaultDataDir" checked> Default Data Dir
+                </label>
+                <label class="jt-radio-label" id="jt-src-conn-label">
+                    <input type="radio" name="source" value="fromConnection" id="jt-src-conn-radio"> From Connection
+                </label>
+            </div>
+        </div>
+        <div id="jt-src-conn-group" style="display:none; margin-left:28px;">
+            <label class="form-label" for="jt-src-connection">Source Connection</label>
+            <select class="form-input" id="jt-src-connection" name="sourceConnectionName" style="width:auto; min-width:200px;">
+            </select>
+        </div>
+
+        <div class="jt-option-row">
+            <label class="jt-toggle-label">
+                <input type="checkbox" id="jt-reorganize" name="reorganize">
+                <span>Reorganize Files</span>
+            </label>
+        </div>
+
+        <div class="jt-option-row">
+            <label class="jt-toggle-label">
+                <input type="checkbox" id="jt-remove-dups" name="removeDuplicates">
+                <span>Remove Duplicates</span>
+            </label>
+        </div>
+
+        <div class="jt-option-row">
+            <label class="jt-toggle-label">
+                <input type="checkbox" id="jt-notify" name="sendNotification">
+                <span>Send Completed Notification</span>
+            </label>
+        </div>
+        <div id="jt-email-group" style="display:none; margin-left:28px;">
+            <label class="form-label" for="jt-email">Notification Email</label>
+            <input class="form-input" id="jt-email" name="notificationEmail" type="email" placeholder="user@example.com">
+        </div>
+
+        <div class="jt-option-row" style="margin-top:12px;">
+            <label class="form-label" style="margin-bottom:4px;">Target</label>
+            <div id="jt-target-wrap" class="jt-target-group">
+                <label class="jt-radio-label">
+                    <input type="radio" name="target" value="inPlace" checked> In Place
+                </label>
+                <label class="jt-radio-label" id="jt-to-conn-label">
+                    <input type="radio" name="target" value="toConnection" id="jt-to-conn-radio"> To Connection
+                </label>
+            </div>
+        </div>
+        <div id="jt-conn-group" style="display:none; margin-left:28px;">
+            <label class="form-label" for="jt-connection">Connection</label>
+            <select class="form-input" id="jt-connection" name="connectionName" style="width:auto; min-width:200px;">
+            </select>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:16px;">
+            <button type="submit" class="btn" id="jt-submit-btn">
+                <span class="material-icons btn-icon">add</span> Create Template
+            </button>
+            <button type="button" class="btn" id="jt-cancel-btn" style="background:#efebe9;color:#5d4037;display:none;">
+                Cancel
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Edit/Create dialog uses inline form above -->
+
+<script src="/js/job-templates.js"></script>
+{{/layouts/main}}

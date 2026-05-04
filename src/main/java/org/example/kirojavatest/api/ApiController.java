@@ -42,18 +42,66 @@ public class ApiController {
         });
 
         // List one level of the data directory. ?path= is relative to data dir root.
+        // ?connection= optionally selects a configured connection as the root.
         config.routes.get("/api/files", ctx -> {
             String dataDir = AppConfig.get("app.data.dir", "");
             if (dataDir.isEmpty()) {
                 ctx.json(Map.of("path", "", "items", List.of()));
                 return;
             }
-            Path root = Paths.get(dataDir).toAbsolutePath().normalize();
-            if (!Files.isDirectory(root)) {
-                try { Files.createDirectories(root); }
+            Path baseRoot = Paths.get(dataDir).toAbsolutePath().normalize();
+            if (!Files.isDirectory(baseRoot)) {
+                try { Files.createDirectories(baseRoot); }
                 catch (IOException e) {
-                    ctx.json(Map.of("path", root.toString(), "items", List.of()));
+                    ctx.json(Map.of("path", baseRoot.toString(), "items", List.of()));
                     return;
+                }
+            }
+
+            // Resolve effective root based on connection parameter
+            Path root = baseRoot;
+            String connParam = ctx.queryParam("connection");
+            if (connParam != null && !connParam.isEmpty()) {
+                try {
+                    int connIdx = Integer.parseInt(connParam);
+                    List<Map<String, Object>> conns = readConnections();
+                    if (connIdx >= 0 && connIdx < conns.size()) {
+                        Map<String, Object> conn = conns.get(connIdx);
+                        // Check if connection is offline
+                        Object offlineFlag = conn.get("offline");
+                        if (Boolean.TRUE.equals(offlineFlag) || "true".equals(offlineFlag)) {
+                            ctx.json(Map.of("path", "", "items", List.of(), "offline", true,
+                                    "notice", "Connection \"" + conn.getOrDefault("name", "") + "\" is currently offline."));
+                            return;
+                        }
+                        String connType = (String) conn.getOrDefault("type", "smb");
+                        if ("file".equals(connType)) {
+                            String subPath = (String) conn.getOrDefault("subPath", "");
+                            if (subPath != null && !subPath.isEmpty()) {
+                                Path resolved = baseRoot.resolve(subPath).normalize();
+                                if (resolved.startsWith(baseRoot) && Files.isDirectory(resolved)) {
+                                    root = resolved;
+                                } else if (resolved.startsWith(baseRoot)) {
+                                    // Sub-path doesn't exist — mark offline
+                                    markConnectionOffline(connIdx);
+                                    ctx.json(Map.of("path", "", "items", List.of(), "offline", true,
+                                            "notice", "Subdirectory not found. Connection marked offline."));
+                                    return;
+                                } else {
+                                    ctx.status(HttpStatus.FORBIDDEN).json(Map.of("error", "Access denied"));
+                                    return;
+                                }
+                            }
+                        }
+                        // SMB/SFTP connections are not browsable locally — return empty for now
+                        if ("smb".equals(connType) || "sftp".equals(connType)) {
+                            ctx.json(Map.of("path", "", "items", List.of(),
+                                    "notice", "Remote connections (" + connType.toUpperCase() + ") are not yet browsable."));
+                            return;
+                        }
+                    }
+                } catch (NumberFormatException e) {
+                    // ignore invalid connection param
                 }
             }
 
@@ -61,7 +109,7 @@ public class ApiController {
             Path target = root;
             if (relPath != null && !relPath.isEmpty()) {
                 target = root.resolve(relPath).normalize();
-                // Prevent path traversal outside data dir
+                // Prevent path traversal outside root
                 if (!target.startsWith(root)) {
                     ctx.status(HttpStatus.FORBIDDEN).json(Map.of("error", "Access denied"));
                     return;
@@ -424,6 +472,24 @@ public class ApiController {
             ctx.json(conns.get(index));
         });
 
+        // Validate a connection before activating
+        config.routes.post("/api/connections/{index}/validate", ctx -> {
+            int index = Integer.parseInt(ctx.pathParam("index"));
+            List<Map<String, Object>> conns = readConnections();
+            if (index < 0 || index >= conns.size()) {
+                ctx.status(HttpStatus.NOT_FOUND).json(Map.of("error", "Not found"));
+                return;
+            }
+            Map<String, Object> result = validateConnection(conns.get(index));
+            ctx.json(result);
+        });
+
+        // Check all active connections and mark unreachable ones as offline
+        config.routes.post("/api/connections/check-all", ctx -> {
+            var results = checkAllConnections();
+            ctx.json(results);
+        });
+
         config.routes.delete("/api/connections/{index}", ctx -> {
             int index = Integer.parseInt(ctx.pathParam("index"));
             List<Map<String, Object>> conns = readConnections();
@@ -433,6 +499,171 @@ public class ApiController {
             }
             conns.remove(index);
             writeConnections(conns);
+            ctx.json(Map.of("deleted", true));
+        });
+
+        // --- Job Templates CRUD ---
+
+        config.routes.get("/api/job-templates", ctx -> {
+            ctx.json(readJobTemplates());
+        });
+
+        config.routes.post("/api/job-templates", ctx -> {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> tpl = ctx.bodyAsClass(Map.class);
+            List<Map<String, Object>> templates = readJobTemplates();
+            templates.add(tpl);
+            writeJobTemplates(templates);
+            ctx.status(HttpStatus.CREATED).json(tpl);
+        });
+
+        config.routes.put("/api/job-templates/{index}", ctx -> {
+            int index = Integer.parseInt(ctx.pathParam("index"));
+            List<Map<String, Object>> templates = readJobTemplates();
+            if (index < 0 || index >= templates.size()) {
+                ctx.status(HttpStatus.NOT_FOUND).json(Map.of("error", "Not found"));
+                return;
+            }
+            @SuppressWarnings("unchecked")
+            Map<String, Object> updates = ctx.bodyAsClass(Map.class);
+            templates.set(index, updates);
+            writeJobTemplates(templates);
+            ctx.json(templates.get(index));
+        });
+
+        config.routes.delete("/api/job-templates/{index}", ctx -> {
+            int index = Integer.parseInt(ctx.pathParam("index"));
+            List<Map<String, Object>> templates = readJobTemplates();
+            if (index < 0 || index >= templates.size()) {
+                ctx.status(HttpStatus.NOT_FOUND).json(Map.of("error", "Not found"));
+                return;
+            }
+            templates.remove(index);
+            writeJobTemplates(templates);
+            ctx.json(Map.of("deleted", true));
+        });
+
+        // --- Archive Templates CRUD ---
+
+        config.routes.get("/api/archive-templates", ctx -> {
+            ctx.json(readArchiveTemplates());
+        });
+
+        config.routes.post("/api/archive-templates", ctx -> {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> tpl = ctx.bodyAsClass(Map.class);
+            List<Map<String, Object>> templates = readArchiveTemplates();
+            templates.add(tpl);
+            writeArchiveTemplates(templates);
+            ctx.status(HttpStatus.CREATED).json(tpl);
+        });
+
+        config.routes.put("/api/archive-templates/{index}", ctx -> {
+            int index = Integer.parseInt(ctx.pathParam("index"));
+            List<Map<String, Object>> templates = readArchiveTemplates();
+            if (index < 0 || index >= templates.size()) {
+                ctx.status(HttpStatus.NOT_FOUND).json(Map.of("error", "Not found"));
+                return;
+            }
+            @SuppressWarnings("unchecked")
+            Map<String, Object> updates = ctx.bodyAsClass(Map.class);
+            templates.set(index, updates);
+            writeArchiveTemplates(templates);
+            ctx.json(templates.get(index));
+        });
+
+        config.routes.delete("/api/archive-templates/{index}", ctx -> {
+            int index = Integer.parseInt(ctx.pathParam("index"));
+            List<Map<String, Object>> templates = readArchiveTemplates();
+            if (index < 0 || index >= templates.size()) {
+                ctx.status(HttpStatus.NOT_FOUND).json(Map.of("error", "Not found"));
+                return;
+            }
+            templates.remove(index);
+            writeArchiveTemplates(templates);
+            ctx.json(Map.of("deleted", true));
+        });
+
+        // --- Jobs CRUD ---
+
+        config.routes.get("/api/jobs", ctx -> {
+            ctx.json(readJobs());
+        });
+
+        config.routes.post("/api/jobs", ctx -> {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> body = ctx.bodyAsClass(Map.class);
+            // Resolve the template and snapshot its settings
+            Object tplIdxObj = body.get("templateIndex");
+            if (tplIdxObj == null) {
+                ctx.status(HttpStatus.BAD_REQUEST).json(Map.of("error", "templateIndex is required"));
+                return;
+            }
+            int tplIdx = tplIdxObj instanceof Number n ? n.intValue() : Integer.parseInt(tplIdxObj.toString());
+            List<Map<String, Object>> templates = readJobTemplates();
+            if (tplIdx < 0 || tplIdx >= templates.size()) {
+                ctx.status(HttpStatus.NOT_FOUND).json(Map.of("error", "Template not found"));
+                return;
+            }
+            Map<String, Object> snapshot = new LinkedHashMap<>(templates.get(tplIdx));
+
+            Map<String, Object> job = new LinkedHashMap<>();
+            job.put("id", java.util.UUID.randomUUID().toString());
+            job.put("templateSnapshot", snapshot);
+            job.put("status", "created");
+            job.put("createdAt", Instant.now().toString());
+            job.put("startedAt", null);
+            job.put("completedAt", null);
+            job.put("errors", List.of());
+
+            List<Map<String, Object>> jobs = readJobs();
+            jobs.add(job);
+            writeJobs(jobs);
+            ctx.status(HttpStatus.CREATED).json(job);
+        });
+
+        config.routes.get("/api/jobs/{id}", ctx -> {
+            String id = ctx.pathParam("id");
+            List<Map<String, Object>> jobs = readJobs();
+            var found = jobs.stream().filter(j -> id.equals(j.get("id"))).findFirst();
+            if (found.isEmpty()) {
+                ctx.status(HttpStatus.NOT_FOUND).json(Map.of("error", "Not found"));
+                return;
+            }
+            ctx.json(found.get());
+        });
+
+        // Update job status (for simulating state transitions)
+        config.routes.put("/api/jobs/{id}", ctx -> {
+            String id = ctx.pathParam("id");
+            List<Map<String, Object>> jobs = readJobs();
+            Map<String, Object> job = null;
+            for (Map<String, Object> j : jobs) {
+                if (id.equals(j.get("id"))) { job = j; break; }
+            }
+            if (job == null) {
+                ctx.status(HttpStatus.NOT_FOUND).json(Map.of("error", "Not found"));
+                return;
+            }
+            @SuppressWarnings("unchecked")
+            Map<String, Object> updates = ctx.bodyAsClass(Map.class);
+            if (updates.containsKey("status")) job.put("status", updates.get("status"));
+            if (updates.containsKey("startedAt")) job.put("startedAt", updates.get("startedAt"));
+            if (updates.containsKey("completedAt")) job.put("completedAt", updates.get("completedAt"));
+            if (updates.containsKey("errors")) job.put("errors", updates.get("errors"));
+            writeJobs(jobs);
+            ctx.json(job);
+        });
+
+        config.routes.delete("/api/jobs/{id}", ctx -> {
+            String id = ctx.pathParam("id");
+            List<Map<String, Object>> jobs = readJobs();
+            boolean removed = jobs.removeIf(j -> id.equals(j.get("id")));
+            if (!removed) {
+                ctx.status(HttpStatus.NOT_FOUND).json(Map.of("error", "Not found"));
+                return;
+            }
+            writeJobs(jobs);
             ctx.json(Map.of("deleted", true));
         });
     }
@@ -519,6 +750,164 @@ public class ApiController {
         Path file = connectionsFile();
         Files.createDirectories(file.getParent());
         Files.writeString(file, JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(conns));
+    }
+
+    private static Path jobTemplatesFile() {
+        String dataDir = AppConfig.get("app.data.dir", "");
+        return Paths.get(dataDir).toAbsolutePath().resolve(".ui-state").resolve("job-templates.json");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Map<String, Object>> readJobTemplates() throws IOException {
+        Path file = jobTemplatesFile();
+        if (!Files.exists(file)) return new ArrayList<>();
+        return JSON_MAPPER.readValue(Files.readString(file),
+                JSON_MAPPER.getTypeFactory().constructCollectionType(List.class, Map.class));
+    }
+
+    private static void writeJobTemplates(List<Map<String, Object>> templates) throws IOException {
+        Path file = jobTemplatesFile();
+        Files.createDirectories(file.getParent());
+        Files.writeString(file, JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(templates));
+    }
+
+    private static Path archiveTemplatesFile() {
+        String dataDir = AppConfig.get("app.data.dir", "");
+        return Paths.get(dataDir).toAbsolutePath().resolve(".ui-state").resolve("archive-templates.json");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Map<String, Object>> readArchiveTemplates() throws IOException {
+        Path file = archiveTemplatesFile();
+        if (!Files.exists(file)) return new ArrayList<>();
+        return JSON_MAPPER.readValue(Files.readString(file),
+                JSON_MAPPER.getTypeFactory().constructCollectionType(List.class, Map.class));
+    }
+
+    private static void writeArchiveTemplates(List<Map<String, Object>> templates) throws IOException {
+        Path file = archiveTemplatesFile();
+        Files.createDirectories(file.getParent());
+        Files.writeString(file, JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(templates));
+    }
+
+    private static Path jobsFile() {
+        String dataDir = AppConfig.get("app.data.dir", "");
+        return Paths.get(dataDir).toAbsolutePath().resolve(".ui-state").resolve("jobs.json");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Map<String, Object>> readJobs() throws IOException {
+        Path file = jobsFile();
+        if (!Files.exists(file)) return new ArrayList<>();
+        return JSON_MAPPER.readValue(Files.readString(file),
+                JSON_MAPPER.getTypeFactory().constructCollectionType(List.class, Map.class));
+    }
+
+    private static void writeJobs(List<Map<String, Object>> jobs) throws IOException {
+        Path file = jobsFile();
+        Files.createDirectories(file.getParent());
+        Files.writeString(file, JSON_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(jobs));
+    }
+
+    /** Validate a single connection. Returns a map with "valid" (boolean) and optionally "error" (string). */
+    static Map<String, Object> validateConnection(Map<String, Object> conn) {
+        String connType = (String) conn.getOrDefault("type", "smb");
+        if ("file".equals(connType)) {
+            String subPath = (String) conn.getOrDefault("subPath", "");
+            if (subPath == null || subPath.isEmpty()) {
+                return Map.of("valid", false, "error", "Subdirectory path is not configured.");
+            }
+            String dataDir = AppConfig.get("app.data.dir", "");
+            if (dataDir.isEmpty()) {
+                return Map.of("valid", false, "error", "Data directory is not configured.");
+            }
+            Path baseRoot = Paths.get(dataDir).toAbsolutePath().normalize();
+            Path resolved = baseRoot.resolve(subPath).normalize();
+            if (!resolved.startsWith(baseRoot)) {
+                return Map.of("valid", false, "error", "Subdirectory path is outside the data directory.");
+            }
+            if (!Files.isDirectory(resolved)) {
+                return Map.of("valid", false, "error", "Subdirectory does not exist: " + subPath);
+            }
+            return Map.of("valid", true);
+        } else if ("smb".equals(connType)) {
+            String host = (String) conn.getOrDefault("host", "");
+            if (host == null || host.isEmpty()) {
+                return Map.of("valid", false, "error", "Host is not configured.");
+            }
+            try (var socket = new java.net.Socket()) {
+                socket.connect(new java.net.InetSocketAddress(host, 445), 5000);
+                return Map.of("valid", true);
+            } catch (IOException e) {
+                return Map.of("valid", false, "error", "Cannot reach SMB host " + host + ":445 — " + e.getMessage());
+            }
+        } else if ("sftp".equals(connType)) {
+            String host = (String) conn.getOrDefault("host", "");
+            if (host == null || host.isEmpty()) {
+                return Map.of("valid", false, "error", "Host is not configured.");
+            }
+            int port = 22;
+            Object portObj = conn.get("port");
+            if (portObj instanceof String s && !s.isEmpty()) {
+                try { port = Integer.parseInt(s); } catch (NumberFormatException ignored) {}
+            } else if (portObj instanceof Number n) {
+                port = n.intValue();
+            }
+            try (var socket = new java.net.Socket()) {
+                socket.connect(new java.net.InetSocketAddress(host, port), 5000);
+                return Map.of("valid", true);
+            } catch (IOException e) {
+                return Map.of("valid", false, "error", "Cannot reach SFTP host " + host + ":" + port + " — " + e.getMessage());
+            }
+        }
+        return Map.of("valid", false, "error", "Unknown connection type: " + connType);
+    }
+
+    /** Check all active connections and update their offline status. Called by the scheduled checker and the API. */
+    public static Map<String, Object> checkAllConnections() {
+        try {
+            List<Map<String, Object>> conns = readConnections();
+            boolean changed = false;
+            int checked = 0;
+            int markedOffline = 0;
+            int restored = 0;
+            for (Map<String, Object> conn : conns) {
+                boolean isActive = Boolean.TRUE.equals(conn.get("active")) || "true".equals(conn.get("active"));
+                if (!isActive) continue;
+                checked++;
+                Map<String, Object> result = validateConnection(conn);
+                boolean valid = Boolean.TRUE.equals(result.get("valid"));
+                boolean wasOffline = Boolean.TRUE.equals(conn.get("offline")) || "true".equals(conn.get("offline"));
+                if (!valid && !wasOffline) {
+                    conn.put("offline", true);
+                    changed = true;
+                    markedOffline++;
+                } else if (valid && wasOffline) {
+                    conn.remove("offline");
+                    changed = true;
+                    restored++;
+                }
+            }
+            if (changed) {
+                writeConnections(conns);
+            }
+            return Map.of("checked", checked, "markedOffline", markedOffline, "restored", restored);
+        } catch (IOException e) {
+            return Map.of("error", e.getMessage());
+        }
+    }
+
+    /** Mark a single connection as offline by index. */
+    private static void markConnectionOffline(int index) {
+        try {
+            List<Map<String, Object>> conns = readConnections();
+            if (index >= 0 && index < conns.size()) {
+                conns.get(index).put("offline", true);
+                writeConnections(conns);
+            }
+        } catch (IOException e) {
+            // best-effort
+        }
     }
 
     /** List immediate children of target, one level only. */
