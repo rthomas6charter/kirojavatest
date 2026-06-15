@@ -49,6 +49,15 @@ public class SettingsManager {
         return val != null ? val.toString() : defaultValue;
     }
 
+    public int getInt(String key, int defaultValue) {
+        Object val = settings.get(key);
+        if (val instanceof Number n) return n.intValue();
+        if (val instanceof String s) {
+            try { return Integer.parseInt(s); } catch (NumberFormatException e) { return defaultValue; }
+        }
+        return defaultValue;
+    }
+
     /** Update a single setting. */
     public void set(String key, Object value) {
         settings.put(key, value);
@@ -75,6 +84,10 @@ public class SettingsManager {
         settings.putIfAbsent("backgroundTaskTimeout", 300);
         settings.putIfAbsent("backgroundQueueThreshold", 10);
         settings.putIfAbsent("checkConnectionsInterval", 3600);
+        settings.putIfAbsent("autoRunNextJob", false);
+        settings.putIfAbsent("maxConcurrentJobs", 1);
+        settings.putIfAbsent("reorgTransferRateMbps", 100);
+        settings.putIfAbsent("reorgPerFileOverheadMs", 50);
     }
 
     @SuppressWarnings("unchecked")

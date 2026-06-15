@@ -62,6 +62,18 @@
         </p>
         <input class="form-input" id="opt-conn-check" type="number" min="60" style="width:120px;">
 
+        <label class="form-label" for="opt-reorg-rate" style="margin-top:12px;">Avg Transfer Rate (MB/s)</label>
+        <p style="font-size:12px; color:var(--text-secondary); margin-bottom:4px;">
+            Average file transfer rate used to estimate reorganization time. Default: 100.
+        </p>
+        <input class="form-input" id="opt-reorg-rate" type="number" min="1" style="width:120px;">
+
+        <label class="form-label" for="opt-reorg-overhead" style="margin-top:12px;">Per-File Move Overhead (ms)</label>
+        <p style="font-size:12px; color:var(--text-secondary); margin-bottom:4px;">
+            Additional overhead per file move operation in milliseconds. Default: 50.
+        </p>
+        <input class="form-input" id="opt-reorg-overhead" type="number" min="0" style="width:120px;">
+
         <p id="opt-status" style="font-size:13px; color:var(--accent); margin-top:8px;"></p>
     </div>
 </div>

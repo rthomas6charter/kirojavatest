@@ -208,18 +208,29 @@ public class ApiController {
                 }
                 int filesAfterDedup = ds.fileCount() - (dupFileCount - dupGroupCount);
 
-                // Count files needing reorganization
-                int needsReorg = countFilesNeedingReorg(root);
+                // Count files needing reorganization and their total size
+                long[] reorgStats = countAndSizeFilesNeedingReorg(root);
+                int needsReorg = (int) reorgStats[0];
+                long reorgTotalSize = reorgStats[1];
 
-                ctx.json(Map.of(
-                    "totalFiles", ds.fileCount(),
-                    "totalDirs", ds.directoryCount(),
-                    "totalSize", ds.totalSize(),
-                    "dupGroupCount", dupGroupCount,
-                    "reclaimableBytes", reclaimableBytes,
-                    "filesAfterDedup", filesAfterDedup,
-                    "needsReorgCount", needsReorg
-                ));
+                // Compute estimated reorganization time
+                int transferRateMbps = settingsMgr.getInt("reorgTransferRateMbps", 100);
+                int perFileOverheadMs = settingsMgr.getInt("reorgPerFileOverheadMs", 50);
+                double transferRateBytes = (double) transferRateMbps * 1024 * 1024;
+                double transferTime = transferRateBytes > 0 ? reorgTotalSize / transferRateBytes : 0;
+                double overheadTime = (double) needsReorg * perFileOverheadMs / 1000.0;
+                double estimatedReorgTimeSeconds = transferTime + overheadTime;
+
+                Map<String, Object> summary = new LinkedHashMap<>();
+                summary.put("totalFiles", ds.fileCount());
+                summary.put("totalDirs", ds.directoryCount());
+                summary.put("totalSize", ds.totalSize());
+                summary.put("dupGroupCount", dupGroupCount);
+                summary.put("reclaimableBytes", reclaimableBytes);
+                summary.put("filesAfterDedup", filesAfterDedup);
+                summary.put("needsReorgCount", needsReorg);
+                summary.put("estimatedReorgTimeSeconds", estimatedReorgTimeSeconds);
+                ctx.json(summary);
             } catch (Exception e) {
                 ctx.json(Map.of("error", e.getMessage()));
             }
@@ -633,7 +644,7 @@ public class ApiController {
             ctx.json(found.get());
         });
 
-        // Update job status (for simulating state transitions)
+        // Update job status and/or override source/target
         config.routes.put("/api/jobs/{id}", ctx -> {
             String id = ctx.pathParam("id");
             List<Map<String, Object>> jobs = readJobs();
@@ -651,6 +662,11 @@ public class ApiController {
             if (updates.containsKey("startedAt")) job.put("startedAt", updates.get("startedAt"));
             if (updates.containsKey("completedAt")) job.put("completedAt", updates.get("completedAt"));
             if (updates.containsKey("errors")) job.put("errors", updates.get("errors"));
+            // Allow overriding source and target on the job itself (Requirement 6.2)
+            if (updates.containsKey("sourceOverride")) job.put("sourceOverride", updates.get("sourceOverride"));
+            if (updates.containsKey("sourceConnectionName")) job.put("sourceConnectionName", updates.get("sourceConnectionName"));
+            if (updates.containsKey("targetOverride")) job.put("targetOverride", updates.get("targetOverride"));
+            if (updates.containsKey("targetConnectionName")) job.put("targetConnectionName", updates.get("targetConnectionName"));
             writeJobs(jobs);
             ctx.json(job);
         });
@@ -687,6 +703,31 @@ public class ApiController {
             }
         });
         return count[0];
+    }
+
+    /** Returns [count, totalSizeBytes] for files needing reorganization. */
+    private static long[] countAndSizeFilesNeedingReorg(Path root) throws IOException {
+        long[] result = {0, 0}; // [count, totalSize]
+        Files.walkFileTree(root, new java.nio.file.SimpleFileVisitor<>() {
+            @Override
+            public java.nio.file.FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+                if (dir.getFileName() != null && dir.getFileName().toString().equals(".ui-state"))
+                    return java.nio.file.FileVisitResult.SKIP_SUBTREE;
+                return java.nio.file.FileVisitResult.CONTINUE;
+            }
+            @Override
+            public java.nio.file.FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                try {
+                    String rel = root.relativize(file.toAbsolutePath().normalize()).toString();
+                    if (!DatePathUtil.isInCorrectDatePath(rel, file)) {
+                        result[0]++;
+                        result[1] += attrs.size();
+                    }
+                } catch (IOException e) { /* skip */ }
+                return java.nio.file.FileVisitResult.CONTINUE;
+            }
+        });
+        return result;
     }
 
     private static String shellEscape(String s) {

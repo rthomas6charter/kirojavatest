@@ -96,6 +96,8 @@ document.addEventListener('DOMContentLoaded', function () {
     var optTimeout = document.getElementById('opt-task-timeout');
     var optThreshold = document.getElementById('opt-queue-threshold');
     var optConnCheck = document.getElementById('opt-conn-check');
+    var optReorgRate = document.getElementById('opt-reorg-rate');
+    var optReorgOverhead = document.getElementById('opt-reorg-overhead');
     var optStatus = document.getElementById('opt-status');
     if (optTimeout && optThreshold) {
         fetch('/api/settings')
@@ -104,6 +106,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 optTimeout.value = settings.backgroundTaskTimeout || 300;
                 optThreshold.value = settings.backgroundQueueThreshold || 10;
                 if (optConnCheck) optConnCheck.value = settings.checkConnectionsInterval || 3600;
+                if (optReorgRate) optReorgRate.value = settings.reorgTransferRateMbps || 100;
+                if (optReorgOverhead) optReorgOverhead.value = settings.reorgPerFileOverheadMs || 50;
             })
             .catch(function () {});
 
@@ -113,6 +117,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 backgroundQueueThreshold: parseInt(optThreshold.value, 10) || 10
             };
             if (optConnCheck) updates.checkConnectionsInterval = parseInt(optConnCheck.value, 10) || 3600;
+            if (optReorgRate) updates.reorgTransferRateMbps = parseInt(optReorgRate.value, 10) || 100;
+            if (optReorgOverhead) updates.reorgPerFileOverheadMs = parseInt(optReorgOverhead.value, 10) || 50;
             fetch('/api/settings', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -130,6 +136,8 @@ document.addEventListener('DOMContentLoaded', function () {
         optTimeout.addEventListener('change', saveOpt);
         optThreshold.addEventListener('change', saveOpt);
         if (optConnCheck) optConnCheck.addEventListener('change', saveOpt);
+        if (optReorgRate) optReorgRate.addEventListener('change', saveOpt);
+        if (optReorgOverhead) optReorgOverhead.addEventListener('change', saveOpt);
     }
 
     // --- Database stats ---

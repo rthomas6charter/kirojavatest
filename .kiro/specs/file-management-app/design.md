@@ -115,7 +115,7 @@ sequenceDiagram
 | GET | `/api/files` | List directory children (supports `?path=` and `?connection=`) |
 | GET/POST | `/api/files/state` | Load/save expanded tree state per user |
 | GET | `/api/files/duplicates` | Get duplicate file groups with metadata |
-| GET | `/api/summary` | Directory statistics (counts, sizes, duplicates) |
+| GET | `/api/summary` | Directory statistics (counts, sizes, duplicates, estimated reorg time) |
 | GET | `/api/scripts/remove-duplicates` | Generate dedup shell script |
 | GET | `/api/scripts/reorganize` | Generate reorganization shell script |
 | CRUD | `/api/connections` | Connection management (index-based) |
@@ -202,6 +202,10 @@ CREATE TABLE duplicate_pair (
   "id": "UUID string",
   "templateSnapshot": { "...template fields..." },
   "status": "created|running|completed|error",
+  "sourceOverride": "defaultDataDir|fromConnection (optional)",
+  "sourceConnectionName": "string (optional)",
+  "targetOverride": "inPlace|toConnection (optional)",
+  "targetConnectionName": "string (optional)",
   "createdAt": "ISO-8601",
   "startedAt": "ISO-8601|null",
   "completedAt": "ISO-8601|null",
@@ -226,7 +230,11 @@ CREATE TABLE duplicate_pair (
   "theme": "light|dark",
   "backgroundTaskTimeout": 300,
   "backgroundQueueThreshold": 10,
-  "checkConnectionsInterval": 3600
+  "checkConnectionsInterval": 3600,
+  "autoRunNextJob": false,
+  "maxConcurrentJobs": 1,
+  "reorgTransferRateMbps": 100,
+  "reorgPerFileOverheadMs": 50
 }
 ```
 
@@ -300,6 +308,12 @@ stateDiagram-v2
 *For any* data directory state, the summary API SHALL return `filesAfterDedup` equal to `totalFiles - (totalDuplicateFiles - dupGroupCount)`, and `reclaimableBytes` equal to the sum of `(count - 1) * fileSize` across all duplicate groups.
 
 **Validates: Requirements 3.1**
+
+### Property 7b: Reorganization time estimate correctness
+
+*For any* set of files needing reorganization with known sizes, and given configured `reorgTransferRateMbps` and `reorgPerFileOverheadMs`, the estimated reorganization time SHALL equal the sum of `(fileSize / (transferRateMbps * 1024 * 1024))` for each file, plus `(fileCount * perFileOverheadMs / 1000)`, expressed in seconds.
+
+**Validates: Requirements 3.4, 3.5**
 
 ### Property 8: Connection CRUD round-trip
 
@@ -451,6 +465,18 @@ stateDiagram-v2
 
 **Validates: Requirements 15.3, 3.3**
 
+### Property 33: Job source/target override persistence
+
+*For any* job with source and/or target overrides applied, reading the job back SHALL return the override values unchanged, and the original templateSnapshot SHALL remain unmodified.
+
+**Validates: Requirements 6.2**
+
+### Property 34: Auto-run respects concurrency limit
+
+*For any* set of jobs where auto-run is enabled with max concurrent N, the number of jobs in "running" status SHALL never exceed N after an auto-start cycle.
+
+**Validates: Requirements 6.9, 6.10**
+
 ## Error Handling
 
 ### Authentication Errors
@@ -520,6 +546,7 @@ stateDiagram-v2
 - Property 28 (wasted bytes): Generate duplicate groups, verify calculation
 - Property 30 (target path format): Generate files with known creation dates, verify path format
 - Property 31 (DatePathUtil consistency): Generate paths equal to target path, verify isInCorrectDatePath returns true
+- Property 7b (reorg time estimate): Generate file sets with known sizes, verify time calculation formula
 
 ### Integration Tests
 - Full request cycle: login → browse → expand → verify state persistence

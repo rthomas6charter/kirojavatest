@@ -63,6 +63,12 @@ This document captures the requirements for the File Management Application ("Ki
 1. THE Summary_Panel SHALL display the total file count, files needing reorganization count, duplicate set count, files-after-dedup count, and reclaimable space in bytes
 2. WHEN a user clicks the Remove Duplicates download button, THE Summary_Panel SHALL generate and download a shell script that removes duplicate files keeping the first copy in each group
 3. WHEN a user clicks the Reorganize Files download button, THE Summary_Panel SHALL generate and download a shell script that moves files into the configured target path structure
+4. THE Summary_Panel SHALL display an estimated total time for reorganization, computed from the number of files needing reorganization, the configured average transfer rate (MB/s), and the configured per-file move overhead (seconds)
+5. THE estimated reorganization time SHALL be calculated as: sum of (fileSize / transferRate) for each file needing reorganization, plus (numberOfFilesNeedingReorg × perFileMoveOverhead)
+6. THE system SHALL provide a configurable setting `reorgTransferRateMbps` for average transfer rate in MB/s, defaulting to 100
+7. THE system SHALL provide a configurable setting `reorgPerFileOverheadMs` for per-file move overhead in milliseconds, defaulting to 50
+8. WHEN the transfer rate or per-file overhead settings are changed, THE Summary_Panel SHALL recalculate and display the updated estimated reorganization time on the next poll cycle
+9. THE Summary_Panel SHALL display the estimated time in a human-readable format (e.g., "2m 30s", "1h 15m", "< 1s")
 
 ### Requirement 4: Connections Management
 
@@ -100,11 +106,16 @@ This document captures the requirements for the File Management Application ("Ki
 #### Acceptance Criteria
 
 1. WHEN a job is created from a template, THE system SHALL snapshot the template settings at creation time into the job record
-2. WHEN a job is created, THE system SHALL allow overriding the source and/or target from the template defaults
+2. WHEN a job is created, THE system SHALL allow overriding the source and/or target from the template defaults via a single combined dropdown (Default Data Directory as first option, followed by available connections with type labels)
 3. THE system SHALL track job status as one of: created, running, completed, or error
 4. WHEN a job encounters an error, THE system SHALL store error details accessible via a popup dialog
 5. THE system SHALL display jobs in a list ordered newest first, showing template name, source, options, target, status, and timestamps
 6. WHEN a job is created, THE system SHALL assign it a unique UUID identifier
+7. WHEN a user clicks the Start button on a "created" job, THE system SHALL display a confirmation dialog before transitioning the job to "running" status
+8. WHEN a user clicks the Cancel button on a "running" job, THE system SHALL mark the job as "error" with a "Cancelled by user" message
+9. WHEN "Run next job automatically" is enabled, THE system SHALL automatically start the oldest "created" job when running job count is below the configured maximum concurrent jobs
+10. THE system SHALL support configuring maximum concurrent jobs (1–4, default 1) persisted via settings
+11. WHEN displaying source and target in the job list, THE system SHALL include the connection type in parentheses (e.g., "My NAS (SMB)") matching the format used in override dropdowns
 
 ### Requirement 7: Archive Templates
 
@@ -152,8 +163,10 @@ This document captures the requirements for the File Management Application ("Ki
 2. WHEN a user changes the theme setting, THE system SHALL switch between light and dark themes
 3. THE Database Management tab SHALL display SQLite database statistics
 4. THE Directory Structure tab SHALL allow selection of the target structure type for reorganization
-5. THE Optimizations tab SHALL allow configuration of background task timeout, queue threshold, and connection check interval
+5. THE Optimizations tab SHALL allow configuration of background task timeout, queue threshold, connection check interval, reorganization transfer rate (MB/s), and per-file move overhead (ms)
 6. WHEN settings are updated via the Admin Panel, THE Settings_Manager SHALL persist them immediately
+7. THE Optimizations tab SHALL display the reorgTransferRateMbps setting with a numeric input labeled "Avg Transfer Rate (MB/s)" defaulting to 100
+8. THE Optimizations tab SHALL display the reorgPerFileOverheadMs setting with a numeric input labeled "Per-File Move Overhead (ms)" defaulting to 50
 
 ### Requirement 11: Search
 

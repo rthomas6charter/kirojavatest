@@ -97,3 +97,5 @@
 134. Create a spec document for this project so far.
 
 135. try again
+
+136. In the Summary Panel, add a requirement to estimate how long reorganization will take.  This will also require configuration settings, with reasonable defaults, for average transfer rate, and per-file move overhead.  These config values will be used when calculating the estimated total reorg time.

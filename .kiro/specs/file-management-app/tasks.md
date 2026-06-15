@@ -35,7 +35,7 @@ This plan covers the implementation of the file management application's core fe
     - Restore session from valid cookie without re-login
     - Clear invalid/expired cookies
     - _Requirements: 9.3, 9.4, 9.5_
-  - [ ] 2.4 Write property tests for authentication
+  - [x] 2.4 Write property tests for authentication
     - **Property 18: Cookie signing round-trip**
     - **Property 19: Invalid cookie rejection**
     - **Property 20: Constant-time comparison correctness**
@@ -53,7 +53,7 @@ This plan covers the implementation of the file management application's core fe
     - Remove stale records after scan
     - Compute duplicate pairs by checksum grouping
     - _Requirements: 13.9, 14.1_
-  - [ ] 3.3 Write property tests for duplicate detection
+  - [x] 3.3 Write property tests for duplicate detection
     - **Property 27: Duplicate detection by checksum**
     - **Property 28: Duplicate group wasted bytes**
     - **Validates: Requirements 14.1, 14.2**
@@ -74,14 +74,14 @@ This plan covers the implementation of the file management application's core fe
     - Save expanded paths per user to JSON file in .ui-state directory
     - Load state from disk on first request, cache in memory
     - _Requirements: 1.3_
-  - [ ] 4.4 Write property tests for file browser
+  - [x] 4.4 Write property tests for file browser
     - **Property 1: File listing sort order**
     - **Property 2: Expand/collapse state round-trip**
     - **Property 3: Magic number mismatch detection**
     - **Property 4: Target path suggestion consistency**
     - **Validates: Requirements 1.1, 1.3, 1.10, 1.11**
 
-- [ ] 5. Checkpoint - Ensure all tests pass
+- [x] 5. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 6. Duplicate detection and script generation
@@ -97,7 +97,7 @@ This plan covers the implementation of the file management application's core fe
     - Script keeps first file in each group, removes the rest
     - Uses DATA_DIR variable and shell-escaped paths
     - _Requirements: 3.2, 14.3_
-  - [ ] 6.4 Write property tests for script generation
+  - [x] 6.4 Write property tests for script generation
     - **Property 29: Remove-duplicates script correctness**
     - **Validates: Requirements 14.3, 3.2**
 
@@ -117,7 +117,7 @@ This plan covers the implementation of the file management application's core fe
     - moved=true when actual path differs from target path
     - dupCount reflects number of source files at same virtual path
     - _Requirements: 2.1, 2.2, 2.3_
-  - [ ] 7.4 Write property tests for file reorganization
+  - [x] 7.4 Write property tests for file reorganization
     - **Property 5: Structure preview moved flag**
     - **Property 6: Structure preview duplicate count**
     - **Property 30: DatePathUtil target path format**
@@ -131,9 +131,26 @@ This plan covers the implementation of the file management application's core fe
     - filesAfterDedup = totalFiles - (dupFileCount - dupGroupCount)
     - reclaimableBytes = sum of wastedBytes across all groups
     - _Requirements: 3.1_
-  - [ ] 8.2 Write property tests for summary statistics
+  - [x] 8.2 Implement estimated reorganization time in GET /api/summary
+    - Add `estimatedReorgTimeSeconds` field to summary response
+    - Compute as: sum of (fileSize / (reorgTransferRateMbps × 1024 × 1024)) for each file needing reorg, plus (needsReorgCount × reorgPerFileOverheadMs / 1000)
+    - Read `reorgTransferRateMbps` (default 100) and `reorgPerFileOverheadMs` (default 50) from SettingsManager
+    - Add defaults to SettingsManager.applyDefaults()
+    - _Requirements: 3.4, 3.5, 3.6, 3.7_
+  - [x] 8.3 Add reorg time estimate display to Summary Panel frontend
+    - Display estimated time in human-readable format (e.g., "2m 30s", "1h 15m", "< 1s")
+    - Update on each poll cycle (existing 10s interval)
+    - Add `stat-reorg-time` element to summary panel HTML
+    - _Requirements: 3.4, 3.8, 3.9_
+  - [x] 8.4 Add reorg time config settings to Admin Optimizations tab
+    - Add numeric input for "Avg Transfer Rate (MB/s)" defaulting to 100
+    - Add numeric input for "Per-File Move Overhead (ms)" defaulting to 50
+    - Wire load/save through settings API
+    - _Requirements: 3.6, 3.7, 10.5, 10.7, 10.8_
+  - [x] 8.5 Write property tests for summary statistics
     - **Property 7: Summary statistics consistency**
-    - **Validates: Requirements 3.1**
+    - **Property 7b: Reorganization time estimate correctness**
+    - **Validates: Requirements 3.1, 3.4, 3.5**
 
 - [ ] 9. Connections management
   - [x] 9.1 Implement/verify CRUD endpoints for connections (GET/POST/PUT/DELETE /api/connections)
@@ -152,13 +169,13 @@ This plan covers the implementation of the file management application's core fe
     - Restore previously offline connections that are now reachable
     - Scheduled on configurable interval (default 1 hour)
     - _Requirements: 4.9, 4.10, 4.11, 4.12_
-  - [ ] 9.4 Write property tests for connections
+  - [x] 9.4 Write property tests for connections
     - **Property 8: Connection CRUD round-trip**
     - **Property 9: File connection validation**
     - **Property 10: Connection health check state transitions**
     - **Validates: Requirements 4.1, 4.2, 4.3, 4.4, 4.6, 4.9, 4.10**
 
-- [ ] 10. Checkpoint - Ensure all tests pass
+- [x] 10. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 11. Job templates and jobs
@@ -173,20 +190,35 @@ This plan covers the implementation of the file management application's core fe
     - Store error details when status=error
     - Persist in .ui-state/jobs.json
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6_
-  - [ ] 11.3 Write property tests for jobs
+  - [x] 11.3 Implement job source/target override and lifecycle controls
+    - PUT /api/jobs/{id} accepts sourceOverride, sourceConnectionName, targetOverride, targetConnectionName
+    - Start button with confirmation dialog transitions job to "running"
+    - Cancel button marks running job as "error" with "Cancelled by user"
+    - Override dialog uses single combined dropdown (Default + connections with type labels)
+    - Source/target columns show connection type in parentheses
+    - _Requirements: 6.2, 6.7, 6.8, 6.11_
+  - [x] 11.4 Implement auto-run and max concurrent jobs settings
+    - "Run next job automatically" checkbox persisted via settings API
+    - Max concurrent jobs dropdown (1-4, default 1) persisted via settings API
+    - Auto-start oldest "created" jobs when slots available (skips confirm dialog)
+    - Settings defaults added to SettingsManager (autoRunNextJob, maxConcurrentJobs)
+    - _Requirements: 6.9, 6.10_
+  - [x] 11.5 Write property tests for jobs
     - **Property 11: Job Template CRUD round-trip**
     - **Property 12: Job template snapshot immutability**
     - **Property 13: Job status invariant**
     - **Property 14: Job ordering**
     - **Property 15: Job UUID uniqueness**
-    - **Validates: Requirements 5.1, 5.2, 6.1, 6.3, 6.5, 6.6**
+    - **Property 33: Job source/target override persistence**
+    - **Property 34: Auto-run respects concurrency limit**
+    - **Validates: Requirements 5.1, 5.2, 6.1, 6.2, 6.3, 6.5, 6.6, 6.9, 6.10**
 
 - [ ] 12. Archive templates
   - [x] 12.1 Implement/verify Archive Template CRUD (GET/POST/PUT/DELETE /api/archive-templates)
     - Store name, capacityMb, outputFormat (tar, imgburn, iso)
     - Persist in .ui-state/archive-templates.json
     - _Requirements: 7.1, 7.2, 7.3, 7.4_
-  - [ ] 12.2 Write property tests for archive templates
+  - [x] 12.2 Write property tests for archive templates
     - **Property 16: Archive Template CRUD round-trip**
     - **Validates: Requirements 7.1, 7.2**
 
@@ -196,7 +228,7 @@ This plan covers the implementation of the file management application's core fe
     - Update only non-embedding fields on PUT
     - Return empty list if file doesn't exist
     - _Requirements: 8.1, 8.2, 8.3_
-  - [ ] 13.2 Write property tests for faces
+  - [x] 13.2 Write property tests for faces
     - **Property 17: Face edit preserves embeddings**
     - **Validates: Requirements 8.2**
 
@@ -208,7 +240,7 @@ This plan covers the implementation of the file management application's core fe
   - [x] 14.2 Implement/verify database stats endpoint (GET /api/db/stats)
     - Return path, sizeBytes, fileCount, duplicatePairCount, duplicateGroupCount, needsReorgCount, totalTrackedBytes, sqliteVersion, pageSize, pageCount, journalMode
     - _Requirements: 10.3_
-  - [ ] 14.3 Write property tests for settings
+  - [x] 14.3 Write property tests for settings
     - **Property 21: Settings persistence round-trip**
     - **Validates: Requirements 10.6**
 
@@ -222,7 +254,7 @@ This plan covers the implementation of the file management application's core fe
     - Return task maps with all fields (id, type, description, status, progress, timestamps, result, error)
     - Support ?since= parameter for completed tasks
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5_
-  - [ ] 15.3 Write property tests for task queue
+  - [x] 15.3 Write property tests for task queue
     - **Property 23: Active task list consistency**
     - **Property 24: Task completion timestamp**
     - **Property 25: Completed-since filtering**
@@ -233,7 +265,7 @@ This plan covers the implementation of the file management application's core fe
     - Filter results by case-insensitive match against all field values
     - Render search results page with query and clear button
     - _Requirements: 11.1, 11.2, 11.3_
-  - [ ] 16.2 Write property tests for search
+  - [x] 16.2 Write property tests for search
     - **Property 22: Search filtering correctness**
     - **Validates: Requirements 11.1**
 

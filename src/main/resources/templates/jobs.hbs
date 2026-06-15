@@ -17,6 +17,22 @@
         </div>
     </div>
 
+    <div style="margin-bottom:16px; display:flex; gap:24px; align-items:center; flex-wrap:wrap;">
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px;">
+            <input type="checkbox" id="jobs-auto-run" />
+            Run next job automatically
+        </label>
+        <label style="display:flex; align-items:center; gap:6px; font-size:13px;">
+            Max concurrent jobs
+            <select class="form-input" id="jobs-max-concurrent" style="width:auto; min-width:60px; margin-bottom:0;">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+            </select>
+        </label>
+    </div>
+
     <div id="jobs-list">
         <p class="empty-state">Loading...</p>
     </div>
@@ -35,6 +51,31 @@
         <div id="jobs-error-content" style="max-height:50vh; overflow-y:auto;"></div>
         <div class="face-dialog-actions">
             <button type="button" class="btn btn-sm" id="jobs-error-ok-btn" style="background:#efebe9;color:#5d4037;">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Override source/target dialog -->
+<div class="face-dialog-backdrop" id="jobs-override-backdrop" style="display:none;">
+    <div class="face-dialog" style="max-width:500px;">
+        <button class="dup-overlay-close" id="jobs-override-close" aria-label="Close">
+            <span class="material-icons">close</span>
+        </button>
+        <h2 class="face-dialog-title">
+            <span class="material-icons" style="vertical-align:middle; margin-right:4px;">tune</span>
+            Override Source &amp; Target
+        </h2>
+        <div style="margin-bottom:16px;">
+            <label class="form-label" for="jobs-override-source">Source</label>
+            <select class="form-input" id="jobs-override-source"></select>
+        </div>
+        <div style="margin-bottom:16px;">
+            <label class="form-label" for="jobs-override-target">Target</label>
+            <select class="form-input" id="jobs-override-target"></select>
+        </div>
+        <div class="face-dialog-actions">
+            <button type="button" class="btn btn-sm" id="jobs-override-cancel-btn" style="background:#efebe9;color:#5d4037;">Cancel</button>
+            <button type="button" class="btn btn-sm" id="jobs-override-save-btn" style="background:#5d4037;color:#fff;">Save</button>
         </div>
     </div>
 </div>
